@@ -1,8 +1,8 @@
 library(data.table)
-contactextra <- fread("C:/Users/stijn/OneDrive/Documenten/CoMix_BE_contact_extra.csv",fill=TRUE)
+contact_extra <- fread("C:/Users/stijn/OneDrive/Documenten/CoMix_BE_contact_extra.csv",fill=TRUE)
 
 library(dplyr)
-minmaxcontacts <- contactextra %>%
+minmaxcontacts <- contact_extra %>%
   group_by(wave, part_uid) %>%
   summarise(count = n()) %>% 
   group_by(wave) %>%
@@ -13,7 +13,7 @@ minmaxcontacts <- contactextra %>%
 
 print(minmaxcontacts,n=32)
 
-participantmaxcount <- contactextra %>%
+participantmaxcount <- contact_extra %>%
   group_by(wave, part_uid) %>%
   summarise(count = n()) %>% 
   group_by(wave) %>%
@@ -25,7 +25,7 @@ print(participantmaxcount,n=32)
 
 library(tidyr)
 
-counts_per_wave <- contactextra %>%
+counts_per_wave <- contact_extra %>%
   group_by(part_uid, wave) %>%
   summarise(count = n(), .groups = "drop") %>%  
   pivot_wider(names_from = wave, values_from = count, values_fill = list(count = 0))
@@ -33,7 +33,7 @@ counts_per_wave <- contactextra %>%
 
 
 # calculate total number of waves participant participated
-contactextrawaves <- contactextra %>%
+contactextrawaves <- contact_extra %>%
   group_by(part_uid) %>%
   mutate(num_waves_participated = n_distinct(wave))
 
@@ -49,7 +49,7 @@ participant_extra_columns <- participant_extra %>% select("part_id","part_social
 contactextrawaves_merged <- contactextrawaves_short %>%
   left_join(participant_extra_columns, by = c("part_uid_wave" = "part_id"))
 
-comix_be_sday_columns <- CoMix_BE_sday %>% select("part_id","holiday")
+comix_be_sday_columns <- sday %>% select("part_id","holiday")
 
 contactextrawaves_merged <- contactextrawaves_merged %>%
   left_join(comix_be_sday_columns, by = c("part_uid_wave" = "part_id"))
@@ -118,7 +118,7 @@ contactextrawaves_merged <- contactextrawaves_merged %>%
                               "R\xe9gion Wallonne / Waals Gewest" = "Waals Gewest",
                               "R\xe9gion de Bruxelles-Capitale / Brussels Hoofdstede" = "Brussels Hoofdstede"))
 
-table(finaldataset$hh_size) #Make factor variable with hhsize in {1,2,3,4+}
+table(contactextrawaves_merged$hh_size) #Make factor variable with hhsize in {1,2,3,4+}
 contactextrawaves_merged <- contactextrawaves_merged %>%
   mutate(hhsize_cat = as.factor(ifelse(hh_size == 1, "1",
                                        ifelse(hh_size == 2, "2",
@@ -141,6 +141,38 @@ start_date <- as.Date("2020-12-23")
 
 finaldataset <- contactextrawaves_merged2 %>%
   mutate(day_number = as.numeric(date - start_date) / 365)
+
+finaldataset$part_uid <- as.factor(finaldataset$part_uid)
+finaldataset$wave <- as.factor(finaldataset$wave)
+finaldataset$part_social_group_be <- as.factor(finaldataset$part_social_group_be)
+finaldataset$part_social_group_be <- relevel(finaldataset$part_social_group_be, ref = "Group 1&2")
+finaldataset$part_vacc <- factor(finaldataset$part_vacc, levels = c("Yes", "No"))
+finaldataset$part_vacc <- relevel(finaldataset$part_vacc, ref = "No")
+finaldataset$part_elevated_risk <- factor(finaldataset$part_elevated_risk, levels = c("yes", "no"))
+finaldataset$part_elevated_risk <- relevel(finaldataset$part_elevated_risk, ref = "no")
+finaldataset$part_face_mask <- factor(finaldataset$part_face_mask, levels = c("yes", "no"))
+finaldataset$part_face_mask <- relevel(finaldataset$part_face_mask, ref = "no")
+finaldataset$part_symp_none <- case_when(finaldataset$part_symp_none == 0 ~ "No",finaldataset$part_symp_none == 1 ~ "Yes")
+finaldataset$part_symp_none <- factor(finaldataset$part_symp_none, levels = c("No", "Yes"))
+finaldataset$part_symp_none <- relevel(finaldataset$part_symp_none, ref = "No")
+finaldataset$area_3_name <- factor(finaldataset$area_3_name, levels = c("Vlaams Gewest", "Waals Gewest", "Brussels Hoofdstede"))
+finaldataset$area_3_name <- relevel(finaldataset$area_3_name, ref = "Brussels Hoofdstede")
+finaldataset$holiday <- case_when(finaldataset$holiday == 0 ~ "No",finaldataset$holiday == 1 ~ "Yes")
+finaldataset$holiday <- factor(finaldataset$holiday, levels = c("No", "Yes"))
+finaldataset$holiday <- relevel(finaldataset$holiday, ref = "No")
+finaldataset$part_gender <- factor(finaldataset$part_gender, levels = c("M","F"))
+finaldataset$part_gender <- relevel(finaldataset$part_gender, ref = "F")
+finaldataset$hhsize_cat <- relevel(finaldataset$hhsize_cat, ref = "1")
+finaldataset$adult_cat <- factor(finaldataset$adult_cat, levels = c("Adult","Children","Elderly"))
+finaldataset$adult_cat <- relevel(finaldataset$adult_cat, ref = "Adult")
+finaldataset$adult <- factor(finaldataset$adult, levels = c("0","1"))
+finaldataset$adult <- relevel(finaldataset$adult, ref = "0")
+finaldataset$elderly <- factor(finaldataset$elderly, levels = c("0","1"))
+finaldataset$elderly <- relevel(finaldataset$elderly, ref = "0")
+finaldataset$wd <- factor(finaldataset$wd, levels = c("Weekday","Weekend"))
+finaldataset$wd <- relevel(finaldataset$wd, ref = "Weekday")
+finaldataset$wavecount <- relevel(finaldataset$wavecount, ref = "1")
+
   
 finaldataset_children <- finaldataset %>%
   filter(adult_cat == "Children")
@@ -172,7 +204,7 @@ contactextrawaves_waveage <- finaldataset %>%
   group_by(wave) %>%
   mutate(percentage = count / sum(count) * 100) %>%
   ungroup() %>%
-  mutate(adult_cat = factor(adult_cat, levels = c("Children", "Adult", "Elderly")))
+  mutate(adult_cat)
 
 mean_contacts_per_wave <- finaldataset %>%
   group_by(wave) %>%
@@ -181,22 +213,23 @@ mean_contacts_per_wave <- finaldataset %>%
 contactextrawaves_waveage <- contactextrawaves_waveage %>%
   left_join(mean_contacts_per_wave, by = "wave")
 
+library(ggplot2)
 # Create stacked barplot
-ggplot(contactextrawaves_waveage, aes(x = factor(wave), y = percentage, fill = adult_cat)) +
+ggplot(contactextrawaves_waveage, aes(x = wave, y = percentage, fill = adult_cat)) +
   geom_bar(stat = "identity", position = "fill") +
   scale_y_continuous(labels = scales::percent_format(scale = 100)) +
   labs(x = "Wave", y = "% of participants", fill = "Age category") +
   theme_minimal()
 
 # Total contacts
-ggplot(contactextrawaves_waveage, aes(x = factor(wave))) +
+ggplot(contactextrawaves_waveage, aes(x = wave)) +
   geom_line(aes(y = mean_contacts, color = adult_cat, group = adult_cat), size = 1, linetype = "dashed") +
   geom_line(aes(y = total_mean_contacts, group="Elderly"), color = "black", size = 1) +
   labs(x = "Wave", y = "Average Contacts", color = "Age category") +
   theme_minimal()
 
 # Non-household contacts
-ggplot(contactextrawaves_waveage, aes(x = factor(wave))) +
+ggplot(contactextrawaves_waveage, aes(x = wave)) +
   geom_line(aes(y = mean_nonhouseh_contacts, color = adult_cat, group = adult_cat), size = 1, linetype = "dashed") +
   geom_line(aes(y = total_mean_nonhouseh_contacts, group="Elderly"), color = "black", size = 1) +
   labs(x = "Wave", y = "Average Non-household contacts", color = "Age category") +
@@ -210,10 +243,10 @@ contactextrawaves_newwaveage <- finaldataset %>%
   group_by(wave) %>%
   mutate(percentage = count / sum(count) * 100) %>%
   ungroup() %>%
-  mutate(adult_cat = factor(adult_cat, levels = c("Children", "Adult", "Elderly")))
+  mutate(adult_cat)
 
 # Create stacked barplot
-ggplot(contactextrawaves_newwaveage, aes(x = factor(wave), y = percentage, fill = adult_cat)) +
+ggplot(contactextrawaves_newwaveage, aes(x = wave, y = percentage, fill = adult_cat)) +
   geom_bar(stat = "identity", position = "fill") +
   scale_y_continuous(labels = scales::percent_format(scale = 100)) +
   labs(x = "Wave", y = "% of participants", fill = "Age category") +
@@ -231,7 +264,7 @@ contactextrawaves_12wave <- finaldataset %>%
   mutate(numberparticipation = factor(numberparticipation, levels = c("2nd+ participation","1st participation")))
 
 # Create stacked barplot
-ggplot(contactextrawaves_12wave, aes(x = factor(wave), y = percentage, fill = numberparticipation)) +
+ggplot(contactextrawaves_12wave, aes(x = wave, y = percentage, fill = numberparticipation)) +
   geom_bar(stat = "identity", position = "fill") +
   scale_y_continuous(labels = scales::percent_format(scale = 100)) +
   labs(x = "Wave", y = "% of participants", fill = "Wave of participation") +
@@ -245,26 +278,26 @@ contactextrawaves_waveweekday <- finaldataset %>%
   group_by(wave) %>%
   mutate(percentage = count / sum(count) * 100) %>%
   ungroup() %>%
-  mutate(wd = factor(wd, levels = c("Weekday", "Weekend")))
+  mutate(wd)
 
 contactextrawaves_waveweekday <- contactextrawaves_waveweekday %>%
   left_join(mean_contacts_per_wave, by = "wave")
 
 # Create stacked barplot
-ggplot(contactextrawaves_waveweekday, aes(x = factor(wave), y = percentage, fill = wd)) +
+ggplot(contactextrawaves_waveweekday, aes(x = wave, y = percentage, fill = wd)) +
   geom_bar(stat = "identity", position = "fill") +
   scale_y_continuous(labels = scales::percent_format(scale = 100)) +
   labs(x = "Wave", y = "% of participants", fill = "Weekday/Weekend") +
   theme_minimal()
 
 # Total contacts
-ggplot(contactextrawaves_waveweekday, aes(x = factor(wave))) +
+ggplot(contactextrawaves_waveweekday, aes(x = wave)) +
   geom_line(aes(y = mean_contacts, color = wd, group = wd), size = 1, linetype = "dashed") +
   geom_line(aes(y = total_mean_contacts, group="Weekday"), color = "black", size = 1) +
   labs(x = "Wave", y = "Average Contacts", color = "Weekday/Weekend") +
   theme_minimal()
 
-ggplot(contactextrawaves_waveweekday, aes(x = factor(wave))) +
+ggplot(contactextrawaves_waveweekday, aes(x = wave)) +
 geom_line(aes(y = mean_contacts, color = wd, group = wd), size = 0.8) +
   geom_line(aes(y = total_mean_contacts, group="Weekday"), size = 1, linetype = "dashed") +
   labs(x = "Wave", y = "Average Contacts", color = "Weekday/Weekend") + 
@@ -274,7 +307,7 @@ geom_line(aes(y = mean_contacts, color = wd, group = wd), size = 0.8) +
   theme_minimal()
 
 # Non-household contacts
-ggplot(contactextrawaves_waveweekday, aes(x = factor(wave))) +
+ggplot(contactextrawaves_waveweekday, aes(x = wave)) +
   geom_line(aes(y = mean_nonhouseh_contacts, color = wd, group = wd), size = 1, linetype = "dashed") +
   geom_line(aes(y = total_mean_nonhouseh_contacts, group="Weekday"), color = "black", size = 1) +
   labs(x = "Wave", y = "Average non-household contacts", color = "Weekday/Weekend") +
@@ -289,27 +322,27 @@ contactextrawaves_waveregion <- finaldataset %>%
   group_by(wave) %>%
   mutate(percentage = count / sum(count) * 100) %>%
   ungroup() %>%
-  mutate(area_3_name = factor(area_3_name, levels = c("Vlaams Gewest", "Waals Gewest", "Brussels Hoofdstede")))
+  mutate(area_3_name)
 
 
 contactextrawaves_waveregion <- contactextrawaves_waveregion %>%
   left_join(mean_contacts_per_wave, by = "wave")
 
 # Create stacked barplot
-ggplot(contactextrawaves_waveregion, aes(x = factor(wave), y = percentage, fill = area_3_name)) +
+ggplot(contactextrawaves_waveregion, aes(x = wave, y = percentage, fill = area_3_name)) +
   geom_bar(stat = "identity", position = "fill") +
   scale_y_continuous(labels = scales::percent_format(scale = 100)) +
   labs(x = "Wave", y = "% of participants", fill = "Area") +
   theme_minimal()
 
 # Total contacts
-ggplot(contactextrawaves_waveregion, aes(x = factor(wave))) +
+ggplot(contactextrawaves_waveregion, aes(x = wave)) +
   geom_line(aes(y = mean_contacts, color = area_3_name, group = area_3_name), size = 1, linetype = "dashed") +
   geom_line(aes(y = total_mean_contacts, group="Vlaams Gewest"), color = "black", size = 1) +
   labs(x = "Wave", y = "Average Contacts", color = "Area") +
   theme_minimal()
 
-ggplot(contactextrawaves_waveregion, aes(x = factor(wave))) +
+ggplot(contactextrawaves_waveregion, aes(x = wave)) +
   geom_line(aes(y = mean_contacts, color = area_3_name, group = area_3_name), size = 0.8) +
   geom_line(aes(y = total_mean_contacts, group="Vlaams Gewest"), size = 1, linetype = "dashed") +
   labs(x = "Wave", y = "Average Contacts", color = "Area") + 
@@ -319,7 +352,7 @@ ggplot(contactextrawaves_waveregion, aes(x = factor(wave))) +
   theme_minimal()
 
 # Non-household contacts
-ggplot(contactextrawaves_waveregion, aes(x = factor(wave))) +
+ggplot(contactextrawaves_waveregion, aes(x = wave)) +
   geom_line(aes(y = mean_nonhouseh_contacts, color = area_3_name, group = area_3_name), size = 1, linetype = "dashed") +
   geom_line(aes(y = total_mean_nonhouseh_contacts, group="Vlaams Gewest"), color = "black", size = 1) +
   labs(x = "Wave", y = "Average non-household contacts", color = "Area") +
@@ -334,28 +367,26 @@ contactextrawaves_waveholiday <- finaldataset %>%
   group_by(wave) %>%
   mutate(percentage = count / sum(count) * 100) %>%
   ungroup() %>%
-  mutate(holiday = case_when(
-    holiday == 0 ~ "No",
-    holiday == 1 ~ "Yes")) 
+  mutate(holiday) 
 
 contactextrawaves_waveholiday <- contactextrawaves_waveholiday %>%
   left_join(mean_contacts_per_wave, by = "wave")
 
 # Create stacked barplot
-ggplot(contactextrawaves_waveholiday, aes(x = factor(wave), y = percentage, fill = factor(holiday))) +
+ggplot(contactextrawaves_waveholiday, aes(x = wave, y = percentage, fill = holiday)) +
   geom_bar(stat = "identity", position = "fill") +
   scale_y_continuous(labels = scales::percent_format(scale = 100)) +
   labs(x = "Wave", y = "% of participants", fill = "Holiday") +
   theme_minimal()
 
 # Total contacts
-ggplot(contactextrawaves_waveholiday, aes(x = factor(wave))) +
+ggplot(contactextrawaves_waveholiday, aes(x = wave)) +
   geom_line(aes(y = mean_contacts, color = holiday, group = holiday), size = 1, linetype = "dashed") +
   geom_line(aes(y = total_mean_contacts, group="Yes"), color = "black", size = 1) +
   labs(x = "Wave", y = "Average Contacts", color = "Holiday") +
   theme_minimal()
 
-ggplot(contactextrawaves_waveholiday, aes(x = factor(wave))) +
+ggplot(contactextrawaves_waveholiday, aes(x = wave)) +
   geom_line(aes(y = mean_contacts, color = holiday, group = holiday), size = 0.8) +
   geom_line(aes(y = total_mean_contacts, group="Yes"), size = 1, linetype = "dashed") +
   labs(x = "Wave", y = "Average Contacts", color = "Holiday") + 
@@ -365,7 +396,7 @@ ggplot(contactextrawaves_waveholiday, aes(x = factor(wave))) +
   theme_minimal()
 
 # Non-household contacts
-ggplot(contactextrawaves_waveholiday, aes(x = factor(wave))) +
+ggplot(contactextrawaves_waveholiday, aes(x = wave)) +
   geom_line(aes(y = mean_nonhouseh_contacts, color = holiday, group = holiday), size = 1, linetype = "dashed") +
   geom_line(aes(y = total_mean_nonhouseh_contacts, group="Yes"), color = "black", size = 1) +
   labs(x = "Wave", y = "Average non-household contacts", color = "Holiday") +
@@ -383,21 +414,21 @@ contactextrawaves_wavehhsize <- contactextrawaves_wavehhsize %>%
   left_join(mean_contacts_per_wave, by = "wave")
 
 # Create stacked barplot
-ggplot(contactextrawaves_wavehhsize, aes(x = factor(wave), y = percentage, fill = hhsize_cat)) +
+ggplot(contactextrawaves_wavehhsize, aes(x = wave, y = percentage, fill = hhsize_cat)) +
   geom_bar(stat = "identity", position = "fill") +
   scale_y_continuous(labels = scales::percent_format(scale = 100)) +
   labs(x = "Wave", y = "% of participants", fill = "Household size") +
   theme_minimal()
 
 # Total contacts
-ggplot(contactextrawaves_wavehhsize, aes(x = factor(wave))) +
+ggplot(contactextrawaves_wavehhsize, aes(x = wave)) +
   geom_line(aes(y = mean_contacts, color = hhsize_cat, group = hhsize_cat), size = 1) +
   geom_line(aes(y = total_mean_contacts, group="1"), color = "black", size = 1, linetype = "dashed") +
   labs(x = "Wave", y = "Average Contacts", color = "Household size") +
   theme_minimal()
 
 # Non-household contacts
-ggplot(contactextrawaves_wavehhsize, aes(x = factor(wave))) +
+ggplot(contactextrawaves_wavehhsize, aes(x = wave)) +
   geom_line(aes(y = mean_nonhouseh_contacts, color = hhsize_cat, group = hhsize_cat), size = 1) +
   geom_line(aes(y = total_mean_nonhouseh_contacts, group="1"), color = "black", size = 1, linetype = "dashed") +
   labs(x = "Wave", y = "Average non-household contacts", color = "Household size") +
@@ -410,28 +441,26 @@ contactextrawaves_wavesymptom <- finaldataset %>%
   group_by(wave) %>%
   mutate(percentage = count / sum(count) * 100) %>%
   ungroup() %>%
-  mutate(part_symp_none = case_when(
-    part_symp_none == 0 ~ "No",
-    part_symp_none == 1 ~ "Yes")) 
+  mutate(part_symp_none) 
 
 contactextrawaves_wavesymptom <- contactextrawaves_wavesymptom %>%
   left_join(mean_contacts_per_wave, by = "wave")
 
 # Create stacked barplot
-ggplot(contactextrawaves_wavesymptom, aes(x = factor(wave), y = percentage, fill = factor(part_symp_none))) +
+ggplot(contactextrawaves_wavesymptom, aes(x = wave, y = percentage, fill = part_symp_none)) +
   geom_bar(stat = "identity", position = "fill") +
   scale_y_continuous(labels = scales::percent_format(scale = 100)) +
   labs(x = "Wave", y = "% of participants", fill = "Symptomatic status") +
   theme_minimal()
 
 # Total contacts
-ggplot(contactextrawaves_wavesymptom, aes(x = factor(wave))) +
+ggplot(contactextrawaves_wavesymptom, aes(x = wave)) +
   geom_line(aes(y = mean_contacts, color = part_symp_none, group = part_symp_none), size = 1, linetype = "dashed") +
   geom_line(aes(y = total_mean_contacts, group="Yes"), color = "black", size = 1) +
   labs(x = "Wave", y = "Average Contacts", color = "Symptomatic status") +
   theme_minimal()
 
-ggplot(contactextrawaves_wavesymptom, aes(x = factor(wave))) +
+ggplot(contactextrawaves_wavesymptom, aes(x = wave)) +
   geom_line(aes(y = mean_contacts, color = part_symp_none, group = part_symp_none), size = 0.8) +
   geom_line(aes(y = total_mean_contacts, group="Yes"), size = 1, linetype = "dashed") +
   labs(x = "Wave", y = "Average Contacts", color = "Symptomatic status") + 
@@ -441,7 +470,7 @@ ggplot(contactextrawaves_wavesymptom, aes(x = factor(wave))) +
   theme_minimal()
 
 # Non-household contacts
-ggplot(contactextrawaves_wavesymptom, aes(x = factor(wave))) +
+ggplot(contactextrawaves_wavesymptom, aes(x = wave)) +
   geom_line(aes(y = mean_nonhouseh_contacts, color = part_symp_none, group = part_symp_none), size = 1, linetype = "dashed") +
   geom_line(aes(y = total_mean_nonhouseh_contacts, group="Yes"), color = "black", size = 1) +
   labs(x = "Wave", y = "Average non-household contacts", color = "Symptomatic status") +
@@ -458,21 +487,21 @@ contactextrawaves_waveelevrisk <- contactextrawaves_waveelevrisk %>%
   left_join(mean_contacts_per_wave, by = "wave")
 
 # Create stacked barplot
-ggplot(contactextrawaves_waveelevrisk, aes(x = factor(wave), y = percentage, fill = factor(part_elevated_risk))) +
+ggplot(contactextrawaves_waveelevrisk, aes(x = wave, y = percentage, fill = part_elevated_risk)) +
   geom_bar(stat = "identity", position = "fill") +
   scale_y_continuous(labels = scales::percent_format(scale = 100)) +
   labs(x = "Wave", y = "% of participants", fill = "Elevated risk") +
   theme_minimal()
 
 # Total contacts
-ggplot(contactextrawaves_waveelevrisk, aes(x = factor(wave))) +
+ggplot(contactextrawaves_waveelevrisk, aes(x = wave)) +
   geom_line(aes(y = mean_contacts, color = part_elevated_risk, group = part_elevated_risk), size = 1) +
   geom_line(aes(y = total_mean_contacts, group="yes"), color = "black", size = 1,linetype = "dashed") +
   labs(x = "Wave", y = "Average Contacts", color = "Elevated risk") +
   theme_minimal()
 
 # Non-household contacts
-ggplot(contactextrawaves_waveelevrisk, aes(x = factor(wave))) +
+ggplot(contactextrawaves_waveelevrisk, aes(x = wave)) +
   geom_line(aes(y = mean_nonhouseh_contacts, color = part_elevated_risk, group = part_elevated_risk), size = 1) +
   geom_line(aes(y = total_mean_nonhouseh_contacts, group="yes"), color = "black", size = 1,linetype = "dashed") +
   labs(x = "Wave", y = "Average non-household contacts", color = "Elevated risk") +
@@ -490,20 +519,20 @@ contactextrawaves_wavefacemask <- contactextrawaves_wavefacemask %>%
   left_join(mean_contacts_per_wave, by = "wave")
 
 # Create stacked barplot
-ggplot(contactextrawaves_wavefacemask, aes(x = factor(wave), y = percentage, fill = factor(part_face_mask))) +
+ggplot(contactextrawaves_wavefacemask, aes(x = wave, y = percentage, fill = part_face_mask)) +
   geom_bar(stat = "identity", position = "fill") +
   scale_y_continuous(labels = scales::percent_format(scale = 100)) +
   labs(x = "Wave", y = "% of participants", fill = "Face mask usage") +
   theme_minimal()
 
 # Total contacts
-ggplot(contactextrawaves_wavefacemask, aes(x = factor(wave))) +
+ggplot(contactextrawaves_wavefacemask, aes(x = wave)) +
   geom_line(aes(y = mean_contacts, color = part_face_mask, group = part_face_mask), size = 1, linetype = "dashed") +
   geom_line(aes(y = total_mean_contacts, group="yes"), color = "black", size = 1) +
   labs(x = "Wave", y = "Average Contacts", color = "Face mask usage") +
   theme_minimal()
 
-ggplot(contactextrawaves_wavefacemask, aes(x = factor(wave))) +
+ggplot(contactextrawaves_wavefacemask, aes(x = wave)) +
   geom_line(aes(y = mean_contacts, color = part_face_mask, group = part_face_mask), size = 0.8) +
   geom_line(aes(y = total_mean_contacts, group="yes"), size = 1, linetype = "dashed") +
   labs(x = "Wave", y = "Average Contacts", color = "Face mask usage") + 
@@ -513,7 +542,7 @@ ggplot(contactextrawaves_wavefacemask, aes(x = factor(wave))) +
   theme_minimal()
 
 # Non-household contacts
-ggplot(contactextrawaves_wavefacemask, aes(x = factor(wave))) +
+ggplot(contactextrawaves_wavefacemask, aes(x = wave)) +
   geom_line(aes(y = mean_nonhouseh_contacts, color = part_face_mask, group = part_face_mask), size = 1, linetype = "dashed") +
   geom_line(aes(y = total_mean_nonhouseh_contacts, group="yes"), color = "black", size = 1) +
   labs(x = "Wave", y = "Average non-household contacts", color = "Face mask usage") +
@@ -530,21 +559,21 @@ contactextrawaves_wavevacc <- contactextrawaves_wavevacc %>%
   left_join(mean_contacts_per_wave, by = "wave")
 
 # Create stacked barplot
-ggplot(contactextrawaves_wavevacc, aes(x = factor(wave), y = percentage, fill = factor(part_vacc))) +
+ggplot(contactextrawaves_wavevacc, aes(x = wave, y = percentage, fill = part_vacc)) +
   geom_bar(stat = "identity", position = "fill") +
   scale_y_continuous(labels = scales::percent_format(scale = 100)) +
   labs(x = "Wave", y = "% of participants", fill = "Vaccination status") +
   theme_minimal()
 
 # Total contacts
-ggplot(contactextrawaves_wavevacc, aes(x = factor(wave))) +
+ggplot(contactextrawaves_wavevacc, aes(x = wave)) +
   geom_line(aes(y = mean_contacts, color = part_vacc, group = part_vacc), size = 1) +
   geom_line(aes(y = total_mean_contacts, group="Yes"), color = "black", size = 1,linetype = "dashed") +
   labs(x = "Wave", y = "Average Contacts", color = "Vaccination status") +
   theme_minimal()
 
 # Non-household contacts
-ggplot(contactextrawaves_wavevacc, aes(x = factor(wave))) +
+ggplot(contactextrawaves_wavevacc, aes(x = wave)) +
   geom_line(aes(y = mean_nonhouseh_contacts, color = part_vacc, group = part_vacc), size = 1) +
   geom_line(aes(y = total_mean_nonhouseh_contacts, group="Yes"), color = "black", size = 1,linetype = "dashed") +
   labs(x = "Wave", y = "Average non-household contacts", color = "Vaccination status") +
@@ -561,20 +590,20 @@ contactextrawaves_wavegender <- contactextrawaves_wavegender %>%
   left_join(mean_contacts_per_wave, by = "wave")
 
 # Create stacked barplot
-ggplot(contactextrawaves_wavegender, aes(x = factor(wave), y = percentage, fill = factor(part_gender))) +
+ggplot(contactextrawaves_wavegender, aes(x = wave, y = percentage, fill = part_gender)) +
   geom_bar(stat = "identity", position = "fill") +
   scale_y_continuous(labels = scales::percent_format(scale = 100)) +
   labs(x = "Wave", y = "% of participants", fill = "Gender") +
   theme_minimal()
 
 # Total contacts
-ggplot(contactextrawaves_wavegender, aes(x = factor(wave))) +
+ggplot(contactextrawaves_wavegender, aes(x = wave)) +
   geom_line(aes(y = mean_contacts, color = part_gender, group = part_gender), size = 1, linetype = "dashed") +
   geom_line(aes(y = total_mean_contacts, group="F"), color = "black", size = 1) +
   labs(x = "Wave", y = "Average Contacts", color = "Gender") +
   theme_minimal()
 
-ggplot(contactextrawaves_wavegender, aes(x = factor(wave))) +
+ggplot(contactextrawaves_wavegender, aes(x = wave))+
   geom_line(aes(y = mean_contacts, color = part_gender, group = part_gender), size = 0.8) +
   geom_line(aes(y = total_mean_contacts, group="F"), size = 1, linetype = "dashed") +
   labs(x = "Wave", y = "Average Contacts", color = "Gender") + 
@@ -584,7 +613,7 @@ ggplot(contactextrawaves_wavegender, aes(x = factor(wave))) +
   theme_minimal()
 
 # Non-household contacts
-ggplot(contactextrawaves_wavegender, aes(x = factor(wave))) +
+ggplot(contactextrawaves_wavegender, aes(x = wave)) +
   geom_line(aes(y = mean_nonhouseh_contacts, color = part_gender, group = part_gender), size = 1, linetype = "dashed") +
   geom_line(aes(y = total_mean_nonhouseh_contacts, group="F"), color = "black", size = 1) +
   labs(x = "Wave", y = "Average non-household contacts", color = "Gender") +
@@ -602,21 +631,21 @@ contactextrawaves_wavesocialgroup <- contactextrawaves_wavesocialgroup %>%
   left_join(mean_contacts_per_wave, by = "wave")
 
 # Create stacked barplot
-ggplot(contactextrawaves_wavesocialgroup, aes(x = factor(wave), y = percentage, fill = factor(part_social_group_be))) +
+ggplot(contactextrawaves_wavesocialgroup, aes(x = wave, y = percentage, fill = part_social_group_be)) +
   geom_bar(stat = "identity", position = "fill") +
   scale_y_continuous(labels = scales::percent_format(scale = 100)) +
   labs(x = "Wave", y = "% of participants", fill = "Social Group") +
   theme_minimal()
 
 # Total contacts
-ggplot(contactextrawaves_wavesocialgroup, aes(x = factor(wave))) +
+ggplot(contactextrawaves_wavesocialgroup, aes(x = wave)) +
   geom_line(aes(y = mean_contacts, color = part_social_group_be, group = part_social_group_be), size = 1, linetype = "dashed") +
   geom_line(aes(y = total_mean_contacts, group="Group 1&2"), color = "black", size = 1) +
   labs(x = "Wave", y = "Average Contacts", color = "Social Group") +
   theme_minimal()
 
 # Non-household contacts
-ggplot(contactextrawaves_wavesocialgroup, aes(x = factor(wave))) +
+ggplot(contactextrawaves_wavesocialgroup, aes(x = wave)) +
   geom_line(aes(y = mean_nonhouseh_contacts, color = part_social_group_be, group = part_social_group_be), size = 1, linetype = "dashed") +
   geom_line(aes(y = total_mean_nonhouseh_contacts, group="Group 1&2"), color = "black", size = 1) +
   labs(x = "Wave", y = "Average non-household contacts", color = "Social Group") +
