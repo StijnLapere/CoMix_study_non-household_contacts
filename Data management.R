@@ -177,6 +177,38 @@ start_date <- as.Date("2020-12-23")
 finaldataset <- contactextrawaves_merged2 %>%
   mutate(day_number = as.numeric(as.Date(survey_date) - start_date) / 365)
 
+finaldataset$part_uid <- as.factor(finaldataset$part_uid)
+finaldataset$wave <- as.factor(finaldataset$wave)
+finaldataset$part_social_group_be <- as.factor(finaldataset$part_social_group_be)
+finaldataset$part_social_group_be <- relevel(finaldataset$part_social_group_be, ref = "Group 1&2")
+finaldataset$part_vacc <- factor(finaldataset$part_vacc, levels = c("Yes", "No"))
+finaldataset$part_vacc <- relevel(finaldataset$part_vacc, ref = "No")
+finaldataset$part_elevated_risk <- factor(finaldataset$part_elevated_risk, levels = c("yes", "no"))
+finaldataset$part_elevated_risk <- relevel(finaldataset$part_elevated_risk, ref = "no")
+finaldataset$part_face_mask <- factor(finaldataset$part_face_mask, levels = c("yes", "no"))
+finaldataset$part_face_mask <- relevel(finaldataset$part_face_mask, ref = "no")
+finaldataset$part_symp_none <- case_when(finaldataset$part_symp_none == 0 ~ "No",finaldataset$part_symp_none == 1 ~ "Yes")
+finaldataset$part_symp_none <- factor(finaldataset$part_symp_none, levels = c("No", "Yes"))
+finaldataset$part_symp_none <- relevel(finaldataset$part_symp_none, ref = "No")
+finaldataset$area_3_name <- factor(finaldataset$area_3_name, levels = c("Vlaams Gewest", "Waals Gewest", "Brussels Hoofdstede"))
+finaldataset$area_3_name <- relevel(finaldataset$area_3_name, ref = "Brussels Hoofdstede")
+finaldataset$holiday <- case_when(finaldataset$holiday == 0 ~ "No",finaldataset$holiday == 1 ~ "Yes")
+finaldataset$holiday <- factor(finaldataset$holiday, levels = c("No", "Yes"))
+finaldataset$holiday <- relevel(finaldataset$holiday, ref = "No")
+finaldataset$part_gender <- factor(finaldataset$part_gender, levels = c("M","F"))
+finaldataset$part_gender <- relevel(finaldataset$part_gender, ref = "F")
+finaldataset$hhsize_cat <- relevel(finaldataset$hhsize_cat, ref = "1")
+finaldataset$adult_cat <- factor(finaldataset$adult_cat, levels = c("Adult","Children","Elderly"))
+finaldataset$adult_cat <- relevel(finaldataset$adult_cat, ref = "Adult")
+finaldataset$adult <- factor(finaldataset$adult, levels = c("0","1"))
+finaldataset$adult <- relevel(finaldataset$adult, ref = "0")
+finaldataset$elderly <- factor(finaldataset$elderly, levels = c("0","1"))
+finaldataset$elderly <- relevel(finaldataset$elderly, ref = "0")
+finaldataset$wd <- factor(finaldataset$wd, levels = c("Weekday","Weekend"))
+finaldataset$wd <- relevel(finaldataset$wd, ref = "Weekday")
+finaldataset$wavecount <- relevel(finaldataset$wavecount, ref = "1")
+
+
 colSums(is.na(finaldataset))
 
 # Filter out participants with at least one vaccination status = NA
@@ -243,7 +275,7 @@ finaldataset_NAelevrisk <- finaldataset %>%
   ungroup()
 
 # It is assumed that children have no elevated risk
-finaldataset$part_elevated_risk[finaldataset$adult_cat == "Children" & is.na(finaldataset$part_elevated_risk)] <- "No"
+finaldataset$part_elevated_risk[finaldataset$adult_cat == "Children" & is.na(finaldataset$part_elevated_risk)] <- "no"
 
 
 finaldataset <- finaldataset %>% 
@@ -257,7 +289,7 @@ finaldataset_NAfacemask <- finaldataset %>%
   ungroup()
 
 # It is assumed that children do not have to wear a face mask
-finaldataset$part_face_mask[finaldataset$adult_cat == "Children" & is.na(finaldataset$part_face_mask)] <- "No"
+finaldataset$part_face_mask[finaldataset$adult_cat == "Children" & is.na(finaldataset$part_face_mask)] <- "no"
 
 finaldataset <- finaldataset %>% 
   group_by(part_uid) %>% 
@@ -277,38 +309,6 @@ finaldataset <- finaldataset %>%
   fill("part_symp_none", .direction = "downup")
 
 colSums(is.na(finaldataset))
-
-finaldataset$part_uid <- as.factor(finaldataset$part_uid)
-finaldataset$wave <- as.factor(finaldataset$wave)
-finaldataset$part_social_group_be <- as.factor(finaldataset$part_social_group_be)
-finaldataset$part_social_group_be <- relevel(finaldataset$part_social_group_be, ref = "Group 1&2")
-finaldataset$part_vacc <- factor(finaldataset$part_vacc, levels = c("Yes", "No"))
-finaldataset$part_vacc <- relevel(finaldataset$part_vacc, ref = "No")
-finaldataset$part_elevated_risk <- factor(finaldataset$part_elevated_risk, levels = c("yes", "no"))
-finaldataset$part_elevated_risk <- relevel(finaldataset$part_elevated_risk, ref = "no")
-finaldataset$part_face_mask <- factor(finaldataset$part_face_mask, levels = c("yes", "no"))
-finaldataset$part_face_mask <- relevel(finaldataset$part_face_mask, ref = "no")
-finaldataset$part_symp_none <- case_when(finaldataset$part_symp_none == 0 ~ "No",finaldataset$part_symp_none == 1 ~ "Yes")
-finaldataset$part_symp_none <- factor(finaldataset$part_symp_none, levels = c("No", "Yes"))
-finaldataset$part_symp_none <- relevel(finaldataset$part_symp_none, ref = "No")
-finaldataset$area_3_name <- factor(finaldataset$area_3_name, levels = c("Vlaams Gewest", "Waals Gewest", "Brussels Hoofdstede"))
-finaldataset$area_3_name <- relevel(finaldataset$area_3_name, ref = "Brussels Hoofdstede")
-finaldataset$holiday <- case_when(finaldataset$holiday == 0 ~ "No",finaldataset$holiday == 1 ~ "Yes")
-finaldataset$holiday <- factor(finaldataset$holiday, levels = c("No", "Yes"))
-finaldataset$holiday <- relevel(finaldataset$holiday, ref = "No")
-finaldataset$part_gender <- factor(finaldataset$part_gender, levels = c("M","F"))
-finaldataset$part_gender <- relevel(finaldataset$part_gender, ref = "F")
-finaldataset$hhsize_cat <- relevel(finaldataset$hhsize_cat, ref = "1")
-finaldataset$adult_cat <- factor(finaldataset$adult_cat, levels = c("Adult","Children","Elderly"))
-finaldataset$adult_cat <- relevel(finaldataset$adult_cat, ref = "Adult")
-finaldataset$adult <- factor(finaldataset$adult, levels = c("0","1"))
-finaldataset$adult <- relevel(finaldataset$adult, ref = "0")
-finaldataset$elderly <- factor(finaldataset$elderly, levels = c("0","1"))
-finaldataset$elderly <- relevel(finaldataset$elderly, ref = "0")
-finaldataset$wd <- factor(finaldataset$wd, levels = c("Weekday","Weekend"))
-finaldataset$wd <- relevel(finaldataset$wd, ref = "Weekday")
-finaldataset$wavecount <- relevel(finaldataset$wavecount, ref = "1")
-
 
 finaldataset_children <- finaldataset %>%
   filter(adult_cat == "Children")
