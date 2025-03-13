@@ -177,6 +177,10 @@ start_date <- as.Date("2020-12-23")
 finaldataset <- contactextrawaves_merged2 %>%
   mutate(day_number = as.numeric(as.Date(survey_date) - start_date) / 365)
 
+# Remove participants with social group not allocated
+finaldataset <- finaldataset %>%
+  filter(part_social_group_be != "Not allocated")
+
 finaldataset$part_uid <- as.factor(finaldataset$part_uid)
 finaldataset$wave <- as.factor(finaldataset$wave)
 finaldataset$part_social_group_be <- as.factor(finaldataset$part_social_group_be)
