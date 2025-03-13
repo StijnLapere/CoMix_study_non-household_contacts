@@ -310,11 +310,23 @@ finaldataset <- finaldataset %>%
 
 colSums(is.na(finaldataset))
 
+finaldataset_noagegender <- finaldataset %>%
+  select(-part_age,-part_gender)
+
 finaldataset_children <- finaldataset %>%
+  filter(adult_cat == "Children")
+
+finaldataset_noagegender_children <- finaldataset_noagegender %>%
   filter(adult_cat == "Children")
 
 finaldataset_adult <- finaldataset %>%
   filter(adult_cat == "Adult")
 
+finaldataset_noagegender_adult <- finaldataset_noagegender %>%
+  filter(adult_cat == "Adult")
+
 finaldataset_elderly <- finaldataset %>%
+  filter(adult_cat == "Elderly")
+
+finaldataset_noagegender_Elderly <- finaldataset_noagegender %>%
   filter(adult_cat == "Elderly")
