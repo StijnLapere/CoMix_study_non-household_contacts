@@ -1,14 +1,18 @@
 ### Number of participants
-length(unique(finaldataset$part_uid)) #3977
+length(unique(finaldataset$part_uid)) #4216
 
 ### Total number of responses
-nrow(finaldataset) #32740
+nrow(finaldataset) #39116
 
 ### Total number of reported contacts
-sum(finaldataset$n_contacts) #166380
+sum(finaldataset$n_cnt_all) #166380
+
+### Total number of reported non-household contacts
+sum(finaldataset$num_nonhouseh_cont) #118592
 
 library(dplyr)
-minmaxcontacts <- participant_extra %>%
+# Minimal and maximal number of contacts per wave
+minmaxcontacts <- finaldataset %>%
   group_by(wave, part_uid) %>%
   summarise(count = n_cnt_all) %>% 
   group_by(wave) %>%
@@ -19,7 +23,8 @@ minmaxcontacts <- participant_extra %>%
 
 print(minmaxcontacts,n=32)
 
-participantmaxcount <- participant_extra %>%
+# Participant with maximal number of contacts per wave
+participantmaxcount <- finaldataset %>%
   group_by(wave, part_uid) %>%
   summarise(count = n_cnt_all) %>% 
   group_by(wave) %>%
@@ -28,13 +33,33 @@ participantmaxcount <- participant_extra %>%
 
 print(participantmaxcount,n=32)
 
+# Minimal and maximal number of non-household contacts per wave
+minmaxcontacts <- finaldataset %>%
+  group_by(wave, part_uid) %>%
+  summarise(count = num_nonhouseh_cont) %>% 
+  group_by(wave) %>%
+  summarise(
+    min_count = min(count),
+    max_count = max(count)
+  )
 
+print(minmaxcontacts,n=32)
+
+# Participant with maximal number of non-household contacts per wave
+participantmaxcount <- finaldataset %>%
+  group_by(wave, part_uid) %>%
+  summarise(count = num_nonhouseh_cont) %>% 
+  group_by(wave) %>%
+  filter(count == max(count)) %>%
+  ungroup()
+
+print(participantmaxcount,n=32)
 
 ### Relative percentages of age category participation per wave
 contactextrawaves_waveage <- finaldataset %>%
   filter(!is.na(adult_cat)) %>%
   group_by(wave, adult_cat) %>%
-  summarise(count = n(), mean_contacts = sum(n_contacts)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
+  summarise(count = n(), mean_contacts = sum(n_cnt_all)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
   group_by(wave) %>%
   mutate(percentage = count / sum(count) * 100) %>%
   ungroup() %>%
@@ -42,7 +67,7 @@ contactextrawaves_waveage <- finaldataset %>%
 
 mean_contacts_per_wave <- finaldataset %>%
   group_by(wave) %>%
-  summarise(total_mean_contacts = mean(n_contacts), total_mean_nonhouseh_contacts = mean(num_nonhouseh_cont), .groups = "drop")
+  summarise(total_mean_contacts = mean(n_cnt_all), total_mean_nonhouseh_contacts = mean(num_nonhouseh_cont), .groups = "drop")
 
 contactextrawaves_waveage <- contactextrawaves_waveage %>%
   left_join(mean_contacts_per_wave, by = "wave")
@@ -108,7 +133,7 @@ ggplot(contactextrawaves_12wave, aes(x = wave, y = percentage, fill = numberpart
 contactextrawaves_waveweekday <- finaldataset %>%
   filter(!is.na(wd)) %>%
   group_by(wave, wd) %>%
-  summarise(count = n(), mean_contacts = sum(n_contacts)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
+  summarise(count = n(), mean_contacts = sum(n_cnt_all)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
   group_by(wave) %>%
   mutate(percentage = count / sum(count) * 100) %>%
   ungroup() %>%
@@ -132,7 +157,7 @@ ggplot(contactextrawaves_waveweekday, aes(x = wave)) +
   theme_minimal()
 
 ggplot(contactextrawaves_waveweekday, aes(x = wave)) +
-geom_line(aes(y = mean_contacts, color = wd, group = wd), size = 0.8) +
+  geom_line(aes(y = mean_contacts, color = wd, group = wd), size = 0.8) +
   geom_line(aes(y = total_mean_contacts, group="Weekday"), size = 1, linetype = "dashed") +
   labs(x = "Wave", y = "Average Contacts", color = "Weekday/Weekend") + 
   scale_color_manual(values = c("Weekday" = "red", "Weekend" = "blue", "Average" = "black"),
@@ -152,7 +177,7 @@ ggplot(contactextrawaves_waveweekday, aes(x = wave)) +
 contactextrawaves_waveregion <- finaldataset %>%
   filter(!is.na(area_3_name)) %>%
   group_by(wave, area_3_name) %>%
-  summarise(count = n(), mean_contacts = sum(n_contacts)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
+  summarise(count = n(), mean_contacts = sum(n_cnt_all)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
   group_by(wave) %>%
   mutate(percentage = count / sum(count) * 100) %>%
   ungroup() %>%
@@ -180,7 +205,7 @@ ggplot(contactextrawaves_waveregion, aes(x = wave)) +
   geom_line(aes(y = mean_contacts, color = area_3_name, group = area_3_name), size = 0.8) +
   geom_line(aes(y = total_mean_contacts, group="Vlaams Gewest"), size = 1, linetype = "dashed") +
   labs(x = "Wave", y = "Average Contacts", color = "Area") + 
-  scale_color_manual(values = c("Vlaams Gewest" = "red", "Waals Gewest" = "green", "Brussels Hoofdstede" = "blue", "Average" = "black"),
+  scale_color_manual(values = c("Vlaams Gewest" = "green", "Waals Gewest" = "blue", "Brussels Hoofdstede" = "red", "Average" = "black"),
                      breaks = c("Vlaams Gewest", "Waals Gewest", "Brussels Hoofdstede", "Average"),
                      labels = c("Vlaams Gewest", "Waals Gewest", "Brussels Hoofdstede", "Average")) +
   theme_minimal()
@@ -197,7 +222,7 @@ ggplot(contactextrawaves_waveregion, aes(x = wave)) +
 contactextrawaves_waveholiday <- finaldataset %>%
   filter(!is.na(holiday)) %>%
   group_by(wave, holiday) %>%
-  summarise(count = n(), mean_contacts = sum(n_contacts)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
+  summarise(count = n(), mean_contacts = sum(n_cnt_all)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
   group_by(wave) %>%
   mutate(percentage = count / sum(count) * 100) %>%
   ungroup() %>%
@@ -207,7 +232,7 @@ contactextrawaves_waveholiday <- contactextrawaves_waveholiday %>%
   left_join(mean_contacts_per_wave, by = "wave")
 
 # Create stacked barplot
-ggplot(contactextrawaves_waveholiday, aes(x = wave, y = percentage, fill = holiday)) +
+ggplot(contactextrawaves_waveholiday, aes(x = wave, y = percentage, fill = factor(holiday))) +
   geom_bar(stat = "identity", position = "fill") +
   scale_y_continuous(labels = scales::percent_format(scale = 100)) +
   labs(x = "Wave", y = "% of participants", fill = "Holiday") +
@@ -240,7 +265,7 @@ ggplot(contactextrawaves_waveholiday, aes(x = wave)) +
 contactextrawaves_wavehhsize <- finaldataset %>%
   filter(!is.na(hhsize_cat)) %>%
   group_by(wave, hhsize_cat) %>%
-  summarise(count = n(), mean_contacts = sum(n_contacts)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
+  summarise(count = n(), mean_contacts = sum(n_cnt_all)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
   group_by(wave) %>%
   mutate(percentage = count / sum(count) * 100)
 
@@ -270,8 +295,9 @@ ggplot(contactextrawaves_wavehhsize, aes(x = wave)) +
 
 ### Relative percentages of symptomatic status participation per wave
 contactextrawaves_wavesymptom <- finaldataset %>%
+  filter(!is.na(part_symp_none)) %>%
   group_by(wave, part_symp_none) %>%
-  summarise(count = n(), mean_contacts = sum(n_contacts)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
+  summarise(count = n(), mean_contacts = sum(n_cnt_all)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
   group_by(wave) %>%
   mutate(percentage = count / sum(count) * 100) %>%
   ungroup() %>%
@@ -312,8 +338,9 @@ ggplot(contactextrawaves_wavesymptom, aes(x = wave)) +
 
 ### Relative percentages of elevated risk participation per wave
 contactextrawaves_waveelevrisk <- finaldataset %>%
+  filter(!is.na(part_elevated_risk)) %>%
   group_by(wave, part_elevated_risk) %>%
-  summarise(count = n(), mean_contacts = sum(n_contacts)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
+  summarise(count = n(), mean_contacts = sum(n_cnt_all)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
   group_by(wave) %>%
   mutate(percentage = count / sum(count) * 100)
 
@@ -345,7 +372,7 @@ ggplot(contactextrawaves_waveelevrisk, aes(x = wave)) +
 contactextrawaves_wavefacemask <- finaldataset %>%
   filter(!is.na(part_face_mask)) %>%
   group_by(wave, part_face_mask) %>%
-  summarise(count = n(), mean_contacts = sum(n_contacts)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
+  summarise(count = n(), mean_contacts = sum(n_cnt_all)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
   group_by(wave) %>%
   mutate(percentage = count / sum(count) * 100)
 
@@ -384,8 +411,9 @@ ggplot(contactextrawaves_wavefacemask, aes(x = wave)) +
 
 ### Relative percentages of vaccination status participation per wave
 contactextrawaves_wavevacc <- finaldataset %>%
+  filter(!is.na(part_vacc)) %>%
   group_by(wave, part_vacc) %>%
-  summarise(count = n(), mean_contacts = sum(n_contacts)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
+  summarise(count = n(), mean_contacts = sum(n_cnt_all)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
   group_by(wave) %>%
   mutate(percentage = count / sum(count) * 100)
 
@@ -416,7 +444,7 @@ ggplot(contactextrawaves_wavevacc, aes(x = wave)) +
 ### Relative percentages of gender participation per wave
 contactextrawaves_wavegender <- finaldataset %>%
   group_by(wave, part_gender) %>%
-  summarise(count = n(), mean_contacts = sum(n_contacts)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
+  summarise(count = n(), mean_contacts = sum(n_cnt_all)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
   group_by(wave) %>%
   mutate(percentage = count / sum(count) * 100)
 
@@ -457,7 +485,7 @@ ggplot(contactextrawaves_wavegender, aes(x = wave)) +
 contactextrawaves_wavesocialgroup <- finaldataset %>%
   filter(!is.na(part_social_group_be)) %>%
   group_by(wave, part_social_group_be) %>%
-  summarise(count = n(), mean_contacts = sum(n_contacts)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
+  summarise(count = n(), mean_contacts = sum(n_cnt_all)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
   group_by(wave) %>%
   mutate(percentage = count / sum(count) * 100)
 
@@ -484,6 +512,5 @@ ggplot(contactextrawaves_wavesocialgroup, aes(x = wave)) +
   geom_line(aes(y = total_mean_nonhouseh_contacts, group="Group 1&2"), color = "black", size = 1) +
   labs(x = "Wave", y = "Average non-household contacts", color = "Social Group") +
   theme_minimal()
-
 
 
