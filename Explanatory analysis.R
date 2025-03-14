@@ -1,14 +1,14 @@
 ### Number of participants
-length(unique(finaldataset$part_uid)) #4216
+length(unique(finaldataset$part_uid)) #4208
 
 ### Total number of responses
-nrow(finaldataset) #39116
+nrow(finaldataset) #39028
 
 ### Total number of reported contacts
-sum(finaldataset$n_cnt_all) #166380
+sum(finaldataset$n_cnt_all) #166208
 
 ### Total number of reported non-household contacts
-sum(finaldataset$num_nonhouseh_cont) #118592
+sum(finaldataset$num_nonhouseh_cont) #118506
 
 library(dplyr)
 # Minimal and maximal number of contacts per wave
@@ -514,3 +514,74 @@ ggplot(contactextrawaves_wavesocialgroup, aes(x = wave)) +
   theme_minimal()
 
 
+length(unique(finaldataset$part_uid[finaldataset$adult_cat=="Children"]))
+length(unique(finaldataset$part_uid[finaldataset$adult_cat=="Adult"]))
+length(unique(finaldataset$part_uid[finaldataset$adult_cat=="Elderly"]))
+
+cntdata_summary <- finaldataset %>%
+  group_by(adult_cat) %>%
+  summarise(
+    total_adult = sum(cnt_adult, na.rm = TRUE),
+    total_elderly = sum(cnt_elderly, na.rm = TRUE),
+    total_children = sum(cnt_children, na.rm = TRUE),
+    total_NA = sum(cnt_NA, na.rm = TRUE)
+  )
+
+
+table(finaldataset$adult_cat)
+table(finaldataset$adult_cat)/39028
+
+table(finaldataset$wd,finaldataset$adult_cat)
+table(finaldataset$wd,finaldataset$adult_cat)/39028
+table(finaldataset$wd)
+table(finaldataset$wd)/39028
+
+table(finaldataset$area_3_name,finaldataset$adult_cat)
+table(finaldataset$area_3_name,finaldataset$adult_cat)/39028
+table(finaldataset$area_3_name)
+table(finaldataset$area_3_name)/39028
+
+table(finaldataset$holiday,finaldataset$adult_cat)
+table(finaldataset$holiday,finaldataset$adult_cat)/39028
+table(finaldataset$holiday)
+table(finaldataset$holiday)/39028
+
+table(finaldataset$hhsize_cat,finaldataset$adult_cat)
+table(finaldataset$hhsize_cat,finaldataset$adult_cat)/39028
+table(finaldataset$hhsize_cat)
+table(finaldataset$hhsize_cat)/39028
+
+table(finaldataset$part_elevated_risk,finaldataset$adult_cat)
+table(finaldataset$part_elevated_risk,finaldataset$adult_cat)/39028
+table(finaldataset$part_elevated_risk)
+table(finaldataset$part_elevated_risk)/39028
+
+table(finaldataset$part_face_mask,finaldataset$adult_cat)
+table(finaldataset$part_face_mask,finaldataset$adult_cat)/39028
+table(finaldataset$part_face_mask)
+table(finaldataset$part_face_mask)/39028
+
+table(finaldataset$part_symp_none,finaldataset$adult_cat)
+table(finaldataset$part_symp_none,finaldataset$adult_cat)/39028
+table(finaldataset$part_symp_none)
+table(finaldataset$part_symp_none)/39028
+
+table(finaldataset$part_vacc,finaldataset$adult_cat)
+table(finaldataset$part_vacc,finaldataset$adult_cat)/39028
+table(finaldataset$part_vacc)
+table(finaldataset$part_vacc)/39028
+
+table(finaldataset$part_gender,finaldataset$adult_cat,useNA = "ifany")
+table(finaldataset$part_gender,finaldataset$adult_cat,useNA = "ifany")/39028
+table(finaldataset$part_gender,useNA = "ifany")
+table(finaldataset$part_gender,useNA = "ifany")/39028
+
+table(finaldataset$part_social_group_be,finaldataset$adult_cat)
+table(finaldataset$part_social_group_be,finaldataset$adult_cat)/39028
+table(finaldataset$part_social_group_be)
+table(finaldataset$part_social_group_be)/39028
+
+table(finaldataset$wavecount,finaldataset$adult_cat)
+table(finaldataset$wavecount,finaldataset$adult_cat)/39028
+table(finaldataset$wavecount)
+table(finaldataset$wavecount)/39028
