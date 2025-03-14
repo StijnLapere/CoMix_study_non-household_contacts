@@ -172,6 +172,81 @@ contactextrawaves_merged2 <- contactextrawaves_merged %>%
                                                                          ifelse(row_number() == 7, "7", ">=8"))))))))) %>% 
   arrange(part_uid) %>% group_by(part_uid) %>%  as.data.frame()
 
+contact_extra <- contact_extra %>%
+  mutate(cnt_adult_cat = case_when(
+    cnt_age_group == "0-11" ~ "Children",
+    cnt_age_group == "0-4" ~ "Children",
+    cnt_age_group == "12-17" ~ "Children",
+    cnt_age_group == "18-29" ~ "Adult",
+    cnt_age_group == "18-39" ~ "Adult",
+    cnt_age_group == "18-64" ~ "Adult",
+    cnt_age_group == "30-39" ~ "Adult",
+    cnt_age_group == "30-49" ~ "Adult",
+    cnt_age_group == "40-49" ~ "Adult",
+    cnt_age_group == "40-59" ~ "Adult",
+    cnt_age_group == "5-11" ~ "Children",
+    cnt_age_group == "5-17" ~ "Children",
+    cnt_age_group == "50-59" ~ "Adult",
+    cnt_age_group == "50-69" ~ "Adult",
+    cnt_age_group == "60-69" ~ "Adult",
+    cnt_age_group == "70-120" ~ "Elderly",
+    TRUE ~ NA_character_  # Handle missing or unexpected values
+  ))
+
+contact_extra_NAagegroup <- contact_extra %>%
+  filter(is.na(cnt_adult_cat)) %>%
+  select(part_uid,wave,cnt_adult_cat,cnt_age_group,cnt_age)
+
+table(contact_extra_NAagegroup$cnt_age)
+
+contact_extra <- contact_extra %>%
+  mutate(cnt_adult_cat = case_when(
+    cnt_age_group == "0-11" ~ "Children",
+    cnt_age_group == "0-4" ~ "Children",
+    cnt_age_group == "12-17" ~ "Children",
+    cnt_age_group == "18-29" ~ "Adult",
+    cnt_age_group == "18-39" ~ "Adult",
+    cnt_age_group == "18-64" ~ "Adult",
+    cnt_age_group == "30-39" ~ "Adult",
+    cnt_age_group == "30-49" ~ "Adult",
+    cnt_age_group == "40-49" ~ "Adult",
+    cnt_age_group == "40-59" ~ "Adult",
+    cnt_age_group == "5-11" ~ "Children",
+    cnt_age_group == "5-17" ~ "Children",
+    cnt_age_group == "50-59" ~ "Adult",
+    cnt_age_group == "50-69" ~ "Adult",
+    cnt_age_group == "60-69" ~ "Adult",
+    cnt_age_group == "70-120" ~ "Elderly",
+    cnt_age == "15-19" ~ "Children",
+    cnt_age == "65+" ~ "Elderly",
+    TRUE ~ NA_character_  # Handle missing or unexpected values
+  ))
+  
+table(contact_extra$cnt_adult_cat,useNA = "ifany")
+
+contacts_columns <- contact_extra %>% 
+  filter(cnt_household == 0) %>%
+  select("part_uid","wave","cnt_adult_cat")
+
+contacts_summary <- contacts_columns %>%
+  group_by(part_uid, wave, cnt_adult_cat) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  pivot_wider(names_from = cnt_adult_cat, values_from = count, values_fill = 0)
+
+colnames(contacts_summary) <- c("part_uid","wave","cnt_adult","cnt_NA","cnt_elderly","cnt_children")
+
+contactextrawaves_merged2 <- contactextrawaves_merged2 %>%
+  left_join(contacts_summary, by = c("part_uid","wave"))
+
+for (i in 1:nrow(contactextrawaves_merged2)){
+  if (contactextrawaves_merged2$num_nonhouseh_cont[i] == 0){
+    contactextrawaves_merged2$cnt_adult[i] = 0
+    contactextrawaves_merged2$cnt_NA[i] = 0
+    contactextrawaves_merged2$cnt_children[i] = 0
+    contactextrawaves_merged2$cnt_elderly[i] = 0
+  }
+}
+
 start_date <- as.Date("2020-12-23")
 
 finaldataset <- contactextrawaves_merged2 %>%
@@ -334,3 +409,4 @@ finaldataset_elderly <- finaldataset %>%
 
 finaldataset_noagegender_Elderly <- finaldataset_noagegender %>%
   filter(adult_cat == "Elderly")
+
