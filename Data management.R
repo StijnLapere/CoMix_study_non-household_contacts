@@ -100,8 +100,8 @@ contactextrawaves_merged <- contactextrawaves_merged %>%
 contactextrawaves_merged <- contactextrawaves_merged %>%
   mutate(adult_cat = case_when(
     part_age >= 0 & part_age <= 17 ~ "Children",
-    part_age >= 18 & part_age <= 69 ~ "Adult",
-    part_age >= 70 ~ "Elderly",
+    part_age >= 18 & part_age <= 64 ~ "Adult",
+    part_age >= 65 ~ "Elderly",
     TRUE ~ NA_character_  # Handle missing or unexpected values
   ))
 
@@ -392,6 +392,9 @@ colSums(is.na(finaldataset))
 finaldataset_noagegender <- finaldataset %>%
   select(-part_age,-part_gender)
 
+finaldataset_noage <- finaldataset %>%
+  select(-part_age)
+
 finaldataset_children <- finaldataset %>%
   filter(adult_cat == "Children")
 
@@ -401,12 +404,20 @@ finaldataset_noagegender_children <- finaldataset_noagegender %>%
 finaldataset_adult <- finaldataset %>%
   filter(adult_cat == "Adult")
 
-finaldataset_noagegender_adult <- finaldataset_noagegender %>%
+finaldataset_noage_adult <- finaldataset_noage %>%
   filter(adult_cat == "Adult")
 
 finaldataset_elderly <- finaldataset %>%
   filter(adult_cat == "Elderly")
 
-finaldataset_noagegender_Elderly <- finaldataset_noagegender %>%
+finaldataset_noage_Elderly <- finaldataset_noage %>%
   filter(adult_cat == "Elderly")
 
+table(finaldataset_noagegender_children$hhsize_cat) #No category 1
+finaldataset_noagegender_children$hhsize_cat <- relevel(finaldataset_noagegender_children$hhsize_cat, ref = "2")
+
+table(finaldataset_noage_Elderly$hhsize_cat) #Almost no participants in 2 highest categories
+finaldataset_noage_Elderly <- finaldataset_noage_Elderly %>%
+  mutate(hhsize_elderly = as.factor(ifelse(hh_size == 1, "1",
+                                           ifelse(hh_size == 2, "2","3+"))))
+finaldataset_noage_Elderly$hhsize_elderly <- relevel(finaldataset_noage_Elderly$hhsize_elderly, ref = "1")
