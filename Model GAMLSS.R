@@ -633,9 +633,7 @@ ggplot(df, aes(x = RelativeContacts, y = reorder(Covariate, RelativeContacts))) 
 
 
 
-
-
-
+## NOT CONVERGED ##
 
 
 
