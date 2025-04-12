@@ -50,7 +50,7 @@ contactextrawaves <- contactextrawaves %>%
 contactextrawaves_short <- contactextrawaves %>%
   mutate(part_uid_wave = as.integer(paste0(substr(part_uid, 4, nchar(part_uid)), sprintf("%02d", wave))))
 
-participant_extra_columns <- participant_extra %>% select("part_id","part_social_group_be","part_vacc","part_elevated_risk","part_face_mask","part_symp_none","area_3_name","part_age_group")
+participant_extra_columns <- participant_extra %>% select("part_id","part_social_group_be","part_vacc","part_elevated_risk","part_face_mask","part_symp_none","area_3_name","part_age_group","part_hh_education_main_earner","part_income","part_education","part_occupation_main_earner","part_occupation","part_employstatus")
 
 contactextrawaves_merged <- contactextrawaves_short %>%
   left_join(participant_extra_columns, by = c("part_uid_wave" = "part_id"))
@@ -144,6 +144,35 @@ contactextrawaves_merged <- contactextrawaves_merged %>%
     survey_weekday == "Friday" ~ "Weekday",
     survey_weekday == "Saturday" ~ "Weekend",
     survey_weekday == "Sunday" ~ "Weekend",
+    TRUE ~ NA_character_  # Handle missing or unexpected values
+  ))
+
+contactextrawaves_merged <- contactextrawaves_merged %>%
+  mutate(employstatus = case_when(
+    part_employstatus == "employed full-time (34 hours or more)" ~ "Employed",
+    part_employstatus == "employed part-time (less than 34 hours)" ~ "Employed",
+    part_employstatus == "full-time parent homemaker" ~ "Not in labor force",
+    part_employstatus == "long-term sick or disabled" ~ "Not in labor force",
+    part_employstatus == "retired" ~ "Not in labor force",
+    part_employstatus == "self employed" ~ "Employed",
+    part_employstatus == "student/pupil" ~ "Student",
+    part_employstatus == "unemployed and not looking for a job" ~ "Not in labor force",
+    part_employstatus == "unemployed but looking for a job" ~ "Not in labor force",
+    TRUE ~ NA_character_  # Handle missing or unexpected values
+  ))
+
+contactextrawaves_merged <- contactextrawaves_merged %>%
+  mutate(educationmainearner = case_when(
+    part_hh_education_main_earner == "Without a diploma or primary education" ~ "Low",
+    part_hh_education_main_earner == "General lower secondary education (first 3 years completed)" ~ "Low",
+    part_hh_education_main_earner == "Technical artistic or professional lower secondary education (first 3 years completed)" ~ "Low",
+    part_hh_education_main_earner == "General upper secondary education (6 years completed)" ~ "Medium",
+    part_hh_education_main_earner == "Professional upper secondary (6 years)" ~ "Medium",
+    part_hh_education_main_earner == "Technical or artistic upper secondary education (6 years)" ~ "Medium",
+    part_hh_education_main_earner == "Higher education: graduat candidature bachelor" ~ "High",
+    part_hh_education_main_earner == "University education: bachelor's degree post-graduate master's degree" ~ "High",
+    part_hh_education_main_earner == "Complementary master" ~ "High",
+    part_hh_education_main_earner == "Doctorate" ~ "High",
     TRUE ~ NA_character_  # Handle missing or unexpected values
   ))
 
@@ -285,6 +314,10 @@ finaldataset$elderly <- factor(finaldataset$elderly, levels = c("0","1"))
 finaldataset$elderly <- relevel(finaldataset$elderly, ref = "0")
 finaldataset$wd <- factor(finaldataset$wd, levels = c("Weekday","Weekend"))
 finaldataset$wd <- relevel(finaldataset$wd, ref = "Weekday")
+finaldataset$employstatus <- factor(finaldataset$employstatus, levels = c("Employed","Not in labor force", "Student"))
+finaldataset$employstatus <- relevel(finaldataset$employstatus, ref = "Not in labor force")
+finaldataset$educationmainearner <- factor(finaldataset$educationmainearner, levels = c("Low","Medium","High"))
+finaldataset$educationmainearner <- relevel(finaldataset$educationmainearner, ref = "Medium")
 finaldataset$wavecount <- relevel(finaldataset$wavecount, ref = "1")
 
 
@@ -390,16 +423,16 @@ finaldataset <- finaldataset %>%
 colSums(is.na(finaldataset))
 
 finaldataset_noagegender <- finaldataset %>%
-  select(-part_age,-part_gender)
+  select(-part_age,-part_gender,-part_hh_education_main_earner,-part_income,-part_education,-part_occupation_main_earner,-part_occupation,-part_employstatus)
 
 finaldataset_noage <- finaldataset %>%
-  select(-part_age)
+  select(-part_age,-part_hh_education_main_earner,-part_income,-part_education,-part_occupation_main_earner,-part_occupation,-part_employstatus)
 
 finaldataset_children <- finaldataset %>%
-  filter(adult_cat == "Children")
+  filter(adult_cat == "Children") %>% select(-employstatus)
 
 finaldataset_noagegender_children <- finaldataset_noagegender %>%
-  filter(adult_cat == "Children")
+  filter(adult_cat == "Children") %>% select(-employstatus)
 
 finaldataset_adult <- finaldataset %>%
   filter(adult_cat == "Adult")
@@ -421,3 +454,4 @@ finaldataset_noage_Elderly <- finaldataset_noage_Elderly %>%
   mutate(hhsize_elderly = as.factor(ifelse(hh_size == 1, "1",
                                            ifelse(hh_size == 2, "2","3+"))))
 finaldataset_noage_Elderly$hhsize_elderly <- relevel(finaldataset_noage_Elderly$hhsize_elderly, ref = "1")
+
