@@ -1121,7 +1121,7 @@ modeladultssigma1.1 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vac
                             family = NBI, 
                             data = na.omit(finaldataset_noage_adult),
                             control = gamlss.control(n.cyc = 1000))
-#82 iterations, AIC = 
+#82 iterations, AIC = 63242.9
 
 modeladultssigma1.2 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+part_elevated_risk+
                                 part_face_mask+part_symp_none+area_3_name+holiday+wd+
@@ -1139,6 +1139,7 @@ modeladultssigma1.2 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vac
                               family = NBI, 
                               data = na.omit(finaldataset_noage_adult),
                               control = gamlss.control(n.cyc = 1000))
+#55 iterations, AIC = 63232.8
 
 modeladultssigma1.3 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+part_elevated_risk+
                                 part_face_mask+part_symp_none+area_3_name+holiday+wd+
@@ -1156,6 +1157,7 @@ modeladultssigma1.3 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vac
                               family = NBI, 
                               data = na.omit(finaldataset_noage_adult),
                               control = gamlss.control(n.cyc = 1000))
+#76 iterations, AIC = 63241
 
 modeladultssigma1.4 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+part_elevated_risk+
                                 part_face_mask+part_symp_none+area_3_name+holiday+wd+
@@ -1168,6 +1170,59 @@ modeladultssigma1.4 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vac
                                 part_face_mask+part_symp_none+area_3_name+holiday+wd+
                                 hhsize_cat+wavecount+part_gender+educationmainearner+
                                 part_vacc:area_3_name+
+                                pvc(day_number, by = part_vacc:part_symp_none)+
+                                re(random = ~1|part_uid), 
+                              family = NBI, 
+                              data = na.omit(finaldataset_noage_adult),
+                              control = gamlss.control(n.cyc = 1000))
+#75 iterations, AIC = 63241.3
+
+## Can we include another interaction effect?
+modeladultssigma2.1 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+part_elevated_risk+
+                                part_face_mask+part_symp_none+area_3_name+holiday+wd+
+                                hhsize_cat+wavecount+part_gender+educationmainearner+
+                                part_vacc:part_face_mask+part_elevated_risk:part_face_mask+
+                                part_vacc:educationmainearner+part_vacc:area_3_name+
+                                pvc(day_number, by = part_vacc:part_symp_none)+
+                                re(random = ~1|part_uid),
+                              sigma.formula = ~part_social_group_be+part_vacc+part_elevated_risk+
+                                part_face_mask+part_symp_none+area_3_name+holiday+wd+
+                                hhsize_cat+wavecount+part_gender+educationmainearner+
+                                part_elevated_risk:part_face_mask+part_vacc:part_face_mask+
+                                pvc(day_number, by = part_vacc:part_symp_none)+
+                                re(random = ~1|part_uid), 
+                              family = NBI, 
+                              data = na.omit(finaldataset_noage_adult),
+                              control = gamlss.control(n.cyc = 1000))
+
+modeladultssigma2.2 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+part_elevated_risk+
+                                part_face_mask+part_symp_none+area_3_name+holiday+wd+
+                                hhsize_cat+wavecount+part_gender+educationmainearner+
+                                part_vacc:part_face_mask+part_elevated_risk:part_face_mask+
+                                part_vacc:educationmainearner+part_vacc:area_3_name+
+                                pvc(day_number, by = part_vacc:part_symp_none)+
+                                re(random = ~1|part_uid),
+                              sigma.formula = ~part_social_group_be+part_vacc+part_elevated_risk+
+                                part_face_mask+part_symp_none+area_3_name+holiday+wd+
+                                hhsize_cat+wavecount+part_gender+educationmainearner+
+                                part_elevated_risk:part_face_mask+part_vacc:educationmainearner+
+                                pvc(day_number, by = part_vacc:part_symp_none)+
+                                re(random = ~1|part_uid), 
+                              family = NBI, 
+                              data = na.omit(finaldataset_noage_adult),
+                              control = gamlss.control(n.cyc = 1000))
+
+modeladultssigma2.3 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+part_elevated_risk+
+                                part_face_mask+part_symp_none+area_3_name+holiday+wd+
+                                hhsize_cat+wavecount+part_gender+educationmainearner+
+                                part_vacc:part_face_mask+part_elevated_risk:part_face_mask+
+                                part_vacc:educationmainearner+part_vacc:area_3_name+
+                                pvc(day_number, by = part_vacc:part_symp_none)+
+                                re(random = ~1|part_uid),
+                              sigma.formula = ~part_social_group_be+part_vacc+part_elevated_risk+
+                                part_face_mask+part_symp_none+area_3_name+holiday+wd+
+                                hhsize_cat+wavecount+part_gender+educationmainearner+
+                                part_elevated_risk:part_face_mask+part_vacc:area_3_name+
                                 pvc(day_number, by = part_vacc:part_symp_none)+
                                 re(random = ~1|part_uid), 
                               family = NBI, 
