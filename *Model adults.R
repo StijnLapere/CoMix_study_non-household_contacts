@@ -1194,6 +1194,7 @@ modeladultssigma2.1 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vac
                               family = NBI, 
                               data = na.omit(finaldataset_noage_adult),
                               control = gamlss.control(n.cyc = 1000))
+#92 iterations, AIC = 63234.7
 
 modeladultssigma2.2 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+part_elevated_risk+
                                 part_face_mask+part_symp_none+area_3_name+holiday+wd+
@@ -1211,6 +1212,7 @@ modeladultssigma2.2 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vac
                               family = NBI, 
                               data = na.omit(finaldataset_noage_adult),
                               control = gamlss.control(n.cyc = 1000))
+#79 iterations, AIC = 63232.5
 
 modeladultssigma2.3 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+part_elevated_risk+
                                 part_face_mask+part_symp_none+area_3_name+holiday+wd+
@@ -1228,4 +1230,3 @@ modeladultssigma2.3 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vac
                               family = NBI, 
                               data = na.omit(finaldataset_noage_adult),
                               control = gamlss.control(n.cyc = 1000))
-
