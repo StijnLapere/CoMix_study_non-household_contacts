@@ -1,11 +1,11 @@
 library(data.table)
-contact_extra <- fread("C:/Users/stijn/OneDrive/Documenten/CoMix_BE_contact_extra.csv",fill=TRUE)
-contact_common <- fread("C:/Users/stijn/OneDrive/Documenten/CoMix_BE_contact_common.csv",fill=TRUE)
-participant_extra <- fread("C:/Users/stijn/OneDrive/Documenten/CoMix_BE_participant_extra.csv",fill=TRUE)
-participant_common <- fread("C:/Users/stijn/OneDrive/Documenten/CoMix_BE_participant_common.csv",fill=TRUE)
-hh_extra <- fread("C:/Users/stijn/OneDrive/Documenten/CoMix_BE_hh_extra.csv",fill=TRUE)
-hh_common <- fread("C:/Users/stijn/OneDrive/Documenten/CoMix_BE_hh_common.csv",fill=TRUE)
-sday <- fread("C:/Users/stijn/OneDrive/Documenten/CoMix_BE_sday.csv",fill=TRUE)
+contact_extra <- fread("C:/Users/stijn/Downloads/CoMix_BE_contact_extra.csv",fill=TRUE)
+contact_common <- fread("C:/Users/stijn/Downloads/CoMix_BE_contact_common.csv",fill=TRUE)
+participant_extra <- fread("C:/Users/stijn/Downloads/CoMix_BE_participant_extra.csv",fill=TRUE)
+participant_common <- fread("C:/Users/stijn/Downloads/CoMix_BE_participant_common.csv",fill=TRUE)
+hh_extra <- fread("C:/Users/stijn/Downloads/CoMix_BE_hh_extra.csv",fill=TRUE)
+hh_common <- fread("C:/Users/stijn/Downloads/CoMix_BE_hh_common.csv",fill=TRUE)
+sday <- fread("C:/Users/stijn/Downloads/CoMix_BE_sday.csv",fill=TRUE)
 
 library(tidyr)
 library(dplyr)
@@ -454,4 +454,203 @@ finaldataset_noage_Elderly <- finaldataset_noage_Elderly %>%
   mutate(hhsize_elderly = as.factor(ifelse(hh_size == 1, "1",
                                            ifelse(hh_size == 2, "2","3+"))))
 finaldataset_noage_Elderly$hhsize_elderly <- relevel(finaldataset_noage_Elderly$hhsize_elderly, ref = "1")
+
+
+
+##########################################################
+############ Dataset for logistic regression #############
+##########################################################
+
+nonhouseholdcontacts <- contact_extra %>%
+  filter(cnt_household == 0) %>%
+  select("part_uid","wave","cont_id")
+
+nonhouseholdcontacts <- nonhouseholdcontacts %>%
+  mutate(part_uid_wave = as.integer(paste0(substr(part_uid, 4, nchar(part_uid)), sprintf("%02d", wave))))
+
+physcontact <- contact_common %>%
+  select("part_id","cont_id","phys_contact","cnt_home","cnt_work","cnt_school","cnt_transport","cnt_leisure","cnt_otherplace")
+
+nonhouseholdcontacts <- nonhouseholdcontacts %>%
+  arrange(part_uid,wave) %>%
+  group_by(part_uid) %>%
+  left_join(physcontact, by = c("part_uid_wave" = "part_id","cont_id"))
+  
+nonhouseholdcontacts$wave <- as.factor(nonhouseholdcontacts$wave)
+
+# Include variables from finaldataset
+othervariables <- finaldataset %>%
+  select("part_uid","wave","num_waves_participated","area_3_name",
+         "part_age_group","part_hh_education_main_earner","part_income",
+         "part_education","part_occupation_main_earner","part_occupation",
+         "part_employstatus","holiday","part_age","hh_size","survey_weekday",
+         "survey_date","adult_cat","adult","elderly","wd",
+         "employstatus","educationmainearner","hhsize_cat","wavecount",
+         "part_vacc","part_elevated_risk","part_face_mask","part_symp_none",
+         "part_gender")
+
+nonhouseholdcontacts <- nonhouseholdcontacts %>%
+  left_join(othervariables, by = c("part_uid","wave"))
+
+participant_extra_columns <- participant_extra %>% select("part_id","part_social_group_be")
+
+nonhouseholdcontacts <- nonhouseholdcontacts %>%
+  left_join(participant_extra_columns, by = c("part_uid_wave" = "part_id"))
+
+contact_extra <- contact_extra %>%
+  mutate(cnt_adult_cat = case_when(
+    cnt_age_group == "0-11" ~ "Children",
+    cnt_age_group == "0-4" ~ "Children",
+    cnt_age_group == "12-17" ~ "Children",
+    cnt_age_group == "18-29" ~ "Adult",
+    cnt_age_group == "18-39" ~ "Adult",
+    cnt_age_group == "18-64" ~ "Adult",
+    cnt_age_group == "30-39" ~ "Adult",
+    cnt_age_group == "30-49" ~ "Adult",
+    cnt_age_group == "40-49" ~ "Adult",
+    cnt_age_group == "40-59" ~ "Adult",
+    cnt_age_group == "5-11" ~ "Children",
+    cnt_age_group == "5-17" ~ "Children",
+    cnt_age_group == "50-59" ~ "Adult",
+    cnt_age_group == "50-69" ~ "Adult",
+    cnt_age_group == "60-69" ~ "Adult",
+    cnt_age_group == "70-120" ~ "Elderly",
+    TRUE ~ NA_character_  # Handle missing or unexpected values
+  ))
+
+contact_extra_NAagegroup <- contact_extra %>%
+  filter(is.na(cnt_adult_cat)) %>%
+  select(part_uid,wave,cnt_adult_cat,cnt_age_group,cnt_age)
+
+table(contact_extra_NAagegroup$cnt_age)
+
+contact_extra <- contact_extra %>%
+  mutate(cnt_adult_cat = case_when(
+    cnt_age_group == "0-11" ~ "Children",
+    cnt_age_group == "0-4" ~ "Children",
+    cnt_age_group == "12-17" ~ "Children",
+    cnt_age_group == "18-29" ~ "Adult",
+    cnt_age_group == "18-39" ~ "Adult",
+    cnt_age_group == "18-64" ~ "Adult",
+    cnt_age_group == "30-39" ~ "Adult",
+    cnt_age_group == "30-49" ~ "Adult",
+    cnt_age_group == "40-49" ~ "Adult",
+    cnt_age_group == "40-59" ~ "Adult",
+    cnt_age_group == "5-11" ~ "Children",
+    cnt_age_group == "5-17" ~ "Children",
+    cnt_age_group == "50-59" ~ "Adult",
+    cnt_age_group == "50-69" ~ "Adult",
+    cnt_age_group == "60-69" ~ "Adult",
+    cnt_age_group == "70-120" ~ "Elderly",
+    cnt_age == "15-19" ~ "Children",
+    cnt_age == "65+" ~ "Elderly",
+    TRUE ~ NA_character_  # Handle missing or unexpected values
+  ))
+
+table(contact_extra$cnt_adult_cat,useNA = "ifany")
+
+contacts_columns <- contact_extra %>% 
+  filter(cnt_household == 0) %>%
+  select("part_uid","cont_id","wave","cnt_adult_cat")
+
+contacts_columns$wave <- as.factor(contacts_columns$wave)
+
+nonhouseholdcontacts <- nonhouseholdcontacts %>%
+  left_join(contacts_columns, by = c("part_uid","wave","cont_id"))
+
+nonhouseholdcontacts <- nonhouseholdcontacts %>%
+  mutate(place = case_when(
+    cnt_home == "TRUE" ~ "Home",
+    cnt_work == "TRUE" ~ "Work",
+    cnt_school == "TRUE" ~ "School",
+    cnt_leisure == "TRUE" ~ "Leisure",
+    cnt_otherplace == "TRUE" ~ "Other",
+    cnt_transport == "TRUE" ~ "Transport",
+    TRUE ~ NA_character_  # Handle missing or unexpected values
+  ))
+
+table(nonhouseholdcontacts$place,useNA="ifany")
+
+start_date <- as.Date("2020-12-23")
+
+nonhouseholdcontacts <- nonhouseholdcontacts %>%
+  mutate(day_number = as.numeric(as.Date(survey_date) - start_date) / 365)
+
+# Remove participants with social group not allocated
+nonhouseholdcontacts <- nonhouseholdcontacts %>%
+  filter(part_social_group_be != "Not allocated")
+
+nonhouseholdcontacts$part_uid <- as.factor(nonhouseholdcontacts$part_uid)
+nonhouseholdcontacts$part_social_group_be <- as.factor(nonhouseholdcontacts$part_social_group_be)
+nonhouseholdcontacts$part_social_group_be <- relevel(nonhouseholdcontacts$part_social_group_be, ref = "Group 1&2")
+nonhouseholdcontacts$part_vacc <- factor(nonhouseholdcontacts$part_vacc, levels = c("Yes", "No"))
+nonhouseholdcontacts$part_vacc <- relevel(nonhouseholdcontacts$part_vacc, ref = "No")
+nonhouseholdcontacts$part_elevated_risk <- factor(nonhouseholdcontacts$part_elevated_risk, levels = c("yes", "no"))
+nonhouseholdcontacts$part_elevated_risk <- relevel(nonhouseholdcontacts$part_elevated_risk, ref = "no")
+nonhouseholdcontacts$part_face_mask <- factor(nonhouseholdcontacts$part_face_mask, levels = c("yes", "no"))
+nonhouseholdcontacts$part_face_mask <- relevel(nonhouseholdcontacts$part_face_mask, ref = "no")
+nonhouseholdcontacts$part_symp_none <- factor(nonhouseholdcontacts$part_symp_none, levels = c("No", "Yes"))
+nonhouseholdcontacts$part_symp_none <- relevel(nonhouseholdcontacts$part_symp_none, ref = "No")
+nonhouseholdcontacts$area_3_name <- factor(nonhouseholdcontacts$area_3_name, levels = c("Vlaams Gewest", "Waals Gewest", "Brussels Hoofdstede"))
+nonhouseholdcontacts$area_3_name <- relevel(nonhouseholdcontacts$area_3_name, ref = "Brussels Hoofdstede")
+nonhouseholdcontacts$holiday <- factor(nonhouseholdcontacts$holiday, levels = c("No", "Yes"))
+nonhouseholdcontacts$holiday <- relevel(nonhouseholdcontacts$holiday, ref = "No")
+nonhouseholdcontacts$part_gender <- factor(nonhouseholdcontacts$part_gender, levels = c("M","F"))
+nonhouseholdcontacts$part_gender <- relevel(nonhouseholdcontacts$part_gender, ref = "F")
+nonhouseholdcontacts$hhsize_cat <- relevel(nonhouseholdcontacts$hhsize_cat, ref = "1")
+nonhouseholdcontacts$adult_cat <- factor(nonhouseholdcontacts$adult_cat, levels = c("Adult","Children","Elderly"))
+nonhouseholdcontacts$adult_cat <- relevel(nonhouseholdcontacts$adult_cat, ref = "Adult")
+nonhouseholdcontacts$adult <- factor(nonhouseholdcontacts$adult, levels = c("0","1"))
+nonhouseholdcontacts$adult <- relevel(nonhouseholdcontacts$adult, ref = "0")
+nonhouseholdcontacts$elderly <- factor(nonhouseholdcontacts$elderly, levels = c("0","1"))
+nonhouseholdcontacts$elderly <- relevel(nonhouseholdcontacts$elderly, ref = "0")
+nonhouseholdcontacts$wd <- factor(nonhouseholdcontacts$wd, levels = c("Weekday","Weekend"))
+nonhouseholdcontacts$wd <- relevel(nonhouseholdcontacts$wd, ref = "Weekday")
+nonhouseholdcontacts$employstatus <- factor(nonhouseholdcontacts$employstatus, levels = c("Employed","Not in labor force", "Student"))
+nonhouseholdcontacts$employstatus <- relevel(nonhouseholdcontacts$employstatus, ref = "Not in labor force")
+nonhouseholdcontacts$educationmainearner <- factor(nonhouseholdcontacts$educationmainearner, levels = c("Low","Medium","High"))
+nonhouseholdcontacts$educationmainearner <- relevel(nonhouseholdcontacts$educationmainearner, ref = "Medium")
+nonhouseholdcontacts$wavecount <- relevel(nonhouseholdcontacts$wavecount, ref = "1")
+nonhouseholdcontacts$phys_contact <- case_when(nonhouseholdcontacts$phys_contact == 1 ~ 1,nonhouseholdcontacts$phys_contact == 2 ~ 0)
+nonhouseholdcontacts$phys_contact <- factor(nonhouseholdcontacts$phys_contact, levels = c("0","1"))
+nonhouseholdcontacts$phys_contact <- relevel(nonhouseholdcontacts$phys_contact, ref = "0")
+nonhouseholdcontacts$cnt_adult_cat <- factor(nonhouseholdcontacts$cnt_adult_cat, levels = c("Children","Adult","Elderly"))
+nonhouseholdcontacts$cnt_adult_cat <- relevel(nonhouseholdcontacts$cnt_adult_cat, ref = "Adult")
+nonhouseholdcontacts$place <- factor(nonhouseholdcontacts$place, levels = c("Home","Work","School","Leisure","Other","Transport"))
+nonhouseholdcontacts$place <- relevel(nonhouseholdcontacts$place, ref = "Home")
+
+colSums(is.na(nonhouseholdcontacts))
+
+nonhouseholdcontacts_noagegender <- nonhouseholdcontacts %>%
+  select(-part_age,-part_gender,-part_hh_education_main_earner,-part_income,-part_education,-part_occupation_main_earner,-part_occupation,-part_employstatus)
+
+nonhouseholdcontacts_noage <- nonhouseholdcontacts %>%
+  select(-part_age,-part_hh_education_main_earner,-part_income,-part_education,-part_occupation_main_earner,-part_occupation,-part_employstatus)
+
+nonhouseholdcontacts_children <- nonhouseholdcontacts %>%
+  filter(adult_cat == "Children") %>% select(-employstatus)
+
+nonhouseholdcontacts_noagegender_children <- nonhouseholdcontacts_noagegender %>%
+  filter(adult_cat == "Children") %>% select(-employstatus)
+
+nonhouseholdcontacts_adult <- nonhouseholdcontacts %>%
+  filter(adult_cat == "Adult")
+
+nonhouseholdcontacts_noage_adult <- nonhouseholdcontacts_noage %>%
+  filter(adult_cat == "Adult")
+
+nonhouseholdcontacts_elderly <- nonhouseholdcontacts %>%
+  filter(adult_cat == "Elderly")
+
+nonhouseholdcontacts_noage_Elderly <- nonhouseholdcontacts_noage %>%
+  filter(adult_cat == "Elderly")
+
+table(nonhouseholdcontacts_noagegender_children$hhsize_cat) #No category 1
+nonhouseholdcontacts_noagegender_children$hhsize_cat <- relevel(nonhouseholdcontacts_noagegender_children$hhsize_cat, ref = "2")
+
+table(nonhouseholdcontacts_noage_Elderly$hhsize_cat) #Almost no participants in 2 highest categories
+nonhouseholdcontacts_noage_Elderly <- nonhouseholdcontacts_noage_Elderly %>%
+  mutate(hhsize_elderly = as.factor(ifelse(hh_size == 1, "1",
+                                           ifelse(hh_size == 2, "2","3+"))))
+nonhouseholdcontacts_noage_Elderly$hhsize_elderly <- relevel(nonhouseholdcontacts_noage_Elderly$hhsize_elderly, ref = "1")
 
