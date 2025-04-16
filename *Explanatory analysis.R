@@ -59,15 +59,28 @@ print(participantmaxcount,n=32)
 contactextrawaves_waveage <- finaldataset %>%
   filter(!is.na(adult_cat)) %>%
   group_by(wave, adult_cat) %>%
-  summarise(count = n(), mean_contacts = sum(n_cnt_all)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
+  summarise(
+    count = n(),
+    mean_contacts = mean(n_cnt_all),
+    mean_nonhouseh_contacts = mean(num_nonhouseh_cont),
+    sd_nonhouseh_contacts = sd(num_nonhouseh_cont),
+    se_nonhouseh_contacts = sd_nonhouseh_contacts / sqrt(count),
+    .groups = "drop"
+  ) %>%
   group_by(wave) %>%
   mutate(percentage = count / sum(count) * 100) %>%
-  ungroup() %>%
-  mutate(adult_cat)
+  ungroup()
 
 mean_contacts_per_wave <- finaldataset %>%
   group_by(wave) %>%
-  summarise(total_mean_contacts = mean(n_cnt_all), total_mean_nonhouseh_contacts = mean(num_nonhouseh_cont), .groups = "drop")
+  summarise(
+    total_mean_contacts = mean(n_cnt_all),
+    total_mean_nonhouseh_contacts = mean(num_nonhouseh_cont),
+    sd_total_nonhouseh_contacts = sd(num_nonhouseh_cont),
+    n_total = n(),
+    se_total_nonhouseh_contacts = sd_total_nonhouseh_contacts / sqrt(n_total),
+    .groups = "drop"
+  )
 
 contactextrawaves_waveage <- contactextrawaves_waveage %>%
   left_join(mean_contacts_per_wave, by = "wave")
@@ -89,9 +102,16 @@ ggplot(contactextrawaves_waveage, aes(x = wave)) +
 
 # Non-household contacts
 ggplot(contactextrawaves_waveage, aes(x = wave)) +
+  geom_ribbon(aes(ymin = mean_nonhouseh_contacts - 1.96*se_nonhouseh_contacts,
+                  ymax = mean_nonhouseh_contacts + 1.96*se_nonhouseh_contacts,
+                  fill = adult_cat, group = adult_cat), alpha = 0.2) +
   geom_line(aes(y = mean_nonhouseh_contacts, color = adult_cat, group = adult_cat), size = 1, linetype = "dashed") +
-  geom_line(aes(y = total_mean_nonhouseh_contacts, group="Elderly"), color = "black", size = 1) +
-  labs(x = "Wave", y = "Average Non-household contacts", color = "Age category") +
+  geom_ribbon(aes(ymin = total_mean_nonhouseh_contacts - 1.96 * se_total_nonhouseh_contacts, ymax = total_mean_nonhouseh_contacts + 1.96 * se_total_nonhouseh_contacts),
+              fill = "black", group = 1, alpha = 0.2) +
+  geom_line(aes(y = total_mean_nonhouseh_contacts, group = 1),
+            color = "black", size = 1) +
+  
+  labs(x = "Wave", y = "Average number of non-household contacts", color = "Age category", fill = "Age category") +
   theme_minimal()
 
 ### Relative percentages of age distribution of new participation per wave 
@@ -585,3 +605,11 @@ table(finaldataset$wavecount,finaldataset$adult_cat)
 table(finaldataset$wavecount,finaldataset$adult_cat)/39028
 table(finaldataset$wavecount)
 table(finaldataset$wavecount)/39028
+
+hist(finaldataset$num_nonhouseh_cont[finaldataset$num_nonhouseh_cont <= 10],
+     breaks = c(0,1,2,3,4,5,6,7,8,9,10),
+     main="",
+     xlab = "Number of non-household contacts")
+
+table(finaldataset$num_nonhouseh_cont)
+sum(finaldataset$num_nonhouseh_cont<100)/nrow(finaldataset)
