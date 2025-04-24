@@ -551,6 +551,10 @@ cntdata_summary <- finaldataset %>%
 table(finaldataset$adult_cat)
 table(finaldataset$adult_cat)/39028
 
+sum(finaldataset$num_nonhouseh_cont[finaldataset$adult_cat=="Children"])
+sum(finaldataset$num_nonhouseh_cont[finaldataset$adult_cat=="Adult"])
+sum(finaldataset$num_nonhouseh_cont[finaldataset$adult_cat=="Elderly"])
+
 table(finaldataset$wd,finaldataset$adult_cat)
 table(finaldataset$wd,finaldataset$adult_cat)/39028
 table(finaldataset$wd)
@@ -613,3 +617,4 @@ hist(finaldataset$num_nonhouseh_cont[finaldataset$num_nonhouseh_cont <= 10],
 
 table(finaldataset$num_nonhouseh_cont)
 sum(finaldataset$num_nonhouseh_cont<100)/nrow(finaldataset)
+
