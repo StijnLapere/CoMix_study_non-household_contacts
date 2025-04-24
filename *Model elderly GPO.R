@@ -450,3 +450,46 @@ modelelderlynogender <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_risk
 #78 iterations, AIC = 23816.6
 
 ### NO SIGNIFICANT IMPROVEMENTS ANYMORE
+
+modelelderlyadditive1 <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_risk+
+                                      part_face_mask+part_symp_none+area_3_name+holiday+wd+
+                                      hhsize_elderly+wavecount+part_gender+part_vacc:part_face_mask+
+                                      pvc(day_number)+
+                                      re(random = ~1|part_uid),
+                                    sigma.formula = ~1, 
+                                    family = GPO, 
+                                    data = na.omit(finaldataset_noage_Elderly),
+                                    control = gamlss.control(n.cyc = 1000))
+
+modelelderlyadditive2 <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_risk+
+                                      part_face_mask+part_symp_none+area_3_name+holiday+wd+
+                                      hhsize_elderly+wavecount+part_gender+part_vacc:part_face_mask+
+                                      part_vacc:part_symp_none+
+                                      pvc(day_number)+
+                                      re(random = ~1|part_uid),
+                                    sigma.formula = ~1, 
+                                    family = GPO, 
+                                    data = na.omit(finaldataset_noage_Elderly),
+                                    control = gamlss.control(n.cyc = 1000))
+
+modelelderlyadditive3 <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_risk+
+                                  part_face_mask+part_symp_none+area_3_name+holiday+wd+
+                                  hhsize_elderly+wavecount+part_gender+part_vacc:part_face_mask+
+                                  cs(day_number)+
+                                  re(random = ~1|part_uid),
+                                sigma.formula = ~1, 
+                                family = GPO, 
+                                data = na.omit(finaldataset_noage_Elderly),
+                                control = gamlss.control(n.cyc = 1000))
+
+modelelderlyadditive4 <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_risk+
+                                  part_face_mask+part_symp_none+area_3_name+holiday+wd+
+                                  hhsize_elderly+wavecount+part_gender+part_vacc:part_face_mask+
+                                  part_vacc:part_symp_none+
+                                  cs(day_number)+
+                                  re(random = ~1|part_uid),
+                                sigma.formula = ~1, 
+                                family = GPO, 
+                                data = na.omit(finaldataset_noage_Elderly),
+                                control = gamlss.control(n.cyc = 1000))
+
