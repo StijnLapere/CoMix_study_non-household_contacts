@@ -461,6 +461,136 @@ finaldataset_noage_Elderly$hhsize_elderly <- relevel(finaldataset_noage_Elderly$
 ############ Dataset for logistic regression #############
 ##########################################################
 
+logisticdataset <- contact_extra %>%
+  select("part_uid","wave","cont_id", "cnt_household") %>%
+  mutate(cnt_nonhousehold = case_when(
+    cnt_household == "0" ~ "1",
+    cnt_household == "1" ~ "0",
+    TRUE ~ NA_character_  # Handle missing or unexpected values
+  ))
+
+logisticdataset <- logisticdataset %>%
+  mutate(part_uid_wave = as.integer(paste0(substr(part_uid, 4, nchar(part_uid)), sprintf("%02d", wave))))
+
+logisticdataset$wave <- as.factor(logisticdataset$wave)
+
+# Include variables from finaldataset
+othervariables <- finaldataset %>%
+  select("part_uid","wave","num_waves_participated","area_3_name",
+         "part_age_group","part_hh_education_main_earner","part_income",
+         "part_education","part_occupation_main_earner","part_occupation",
+         "part_employstatus","holiday","part_age","hh_size","survey_weekday",
+         "survey_date","adult_cat","adult","elderly","wd",
+         "employstatus","educationmainearner","hhsize_cat","wavecount",
+         "part_vacc","part_elevated_risk","part_face_mask","part_symp_none",
+         "part_gender")
+
+logisticdataset <- logisticdataset %>%
+  left_join(othervariables, by = c("part_uid","wave"))
+
+participant_extra_columns <- participant_extra %>% select("part_id","part_social_group_be")
+
+logisticdataset <- logisticdataset %>%
+  left_join(participant_extra_columns, by = c("part_uid_wave" = "part_id"))
+
+logisticdataset <- logisticdataset %>%
+  group_by(part_uid,wave,num_waves_participated,area_3_name,
+           part_age_group,part_hh_education_main_earner,part_income,
+           part_education,part_occupation_main_earner,part_occupation,
+           part_employstatus,holiday,part_age,hh_size,survey_weekday,
+           survey_date,adult_cat,adult,elderly,wd,
+           employstatus,educationmainearner,hhsize_cat,wavecount,
+           part_vacc,part_elevated_risk,part_face_mask,part_symp_none,
+           part_gender,part_social_group_be) %>%
+  summarise(
+    any_nonhh_contact = as.integer(any(cnt_nonhousehold == 1)),
+    num_contacts = sum(cnt_nonhousehold == 1, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+start_date <- as.Date("2020-12-23")
+
+logisticdataset <- logisticdataset %>%
+  mutate(day_number = as.numeric(as.Date(survey_date) - start_date) / 365)
+
+# Remove participants with social group not allocated
+logisticdataset <- logisticdataset %>%
+  filter(part_social_group_be != "Not allocated")
+
+logisticdataset$part_uid <- as.factor(logisticdataset$part_uid)
+logisticdataset$part_social_group_be <- as.factor(logisticdataset$part_social_group_be)
+logisticdataset$part_social_group_be <- relevel(logisticdataset$part_social_group_be, ref = "Group 1&2")
+logisticdataset$part_vacc <- factor(logisticdataset$part_vacc, levels = c("Yes", "No"))
+logisticdataset$part_vacc <- relevel(logisticdataset$part_vacc, ref = "No")
+logisticdataset$part_elevated_risk <- factor(logisticdataset$part_elevated_risk, levels = c("yes", "no"))
+logisticdataset$part_elevated_risk <- relevel(logisticdataset$part_elevated_risk, ref = "no")
+logisticdataset$part_face_mask <- factor(logisticdataset$part_face_mask, levels = c("yes", "no"))
+logisticdataset$part_face_mask <- relevel(logisticdataset$part_face_mask, ref = "no")
+logisticdataset$part_symp_none <- factor(logisticdataset$part_symp_none, levels = c("No", "Yes"))
+logisticdataset$part_symp_none <- relevel(logisticdataset$part_symp_none, ref = "No")
+logisticdataset$area_3_name <- factor(logisticdataset$area_3_name, levels = c("Vlaams Gewest", "Waals Gewest", "Brussels Hoofdstede"))
+logisticdataset$area_3_name <- relevel(logisticdataset$area_3_name, ref = "Brussels Hoofdstede")
+logisticdataset$holiday <- factor(logisticdataset$holiday, levels = c("No", "Yes"))
+logisticdataset$holiday <- relevel(logisticdataset$holiday, ref = "No")
+logisticdataset$part_gender <- factor(logisticdataset$part_gender, levels = c("M","F"))
+logisticdataset$part_gender <- relevel(logisticdataset$part_gender, ref = "F")
+logisticdataset$hhsize_cat <- relevel(logisticdataset$hhsize_cat, ref = "1")
+logisticdataset$adult_cat <- factor(logisticdataset$adult_cat, levels = c("Adult","Children","Elderly"))
+logisticdataset$adult_cat <- relevel(logisticdataset$adult_cat, ref = "Adult")
+logisticdataset$adult <- factor(logisticdataset$adult, levels = c("0","1"))
+logisticdataset$adult <- relevel(logisticdataset$adult, ref = "0")
+logisticdataset$elderly <- factor(logisticdataset$elderly, levels = c("0","1"))
+logisticdataset$elderly <- relevel(logisticdataset$elderly, ref = "0")
+logisticdataset$wd <- factor(logisticdataset$wd, levels = c("Weekday","Weekend"))
+logisticdataset$wd <- relevel(logisticdataset$wd, ref = "Weekday")
+logisticdataset$employstatus <- factor(logisticdataset$employstatus, levels = c("Employed","Not in labor force", "Student"))
+logisticdataset$employstatus <- relevel(logisticdataset$employstatus, ref = "Not in labor force")
+logisticdataset$educationmainearner <- factor(logisticdataset$educationmainearner, levels = c("Low","Medium","High"))
+logisticdataset$educationmainearner <- relevel(logisticdataset$educationmainearner, ref = "Medium")
+logisticdataset$wavecount <- relevel(logisticdataset$wavecount, ref = "1")
+logisticdataset$any_nonhh_contact <- factor(logisticdataset$any_nonhh_contact, levels = c("0","1"))
+logisticdataset$any_nonhh_contact <- relevel(logisticdataset$any_nonhh_contact, ref = "0")
+
+colSums(is.na(logisticdataset))
+
+logisticdataset_noagegender <- logisticdataset %>%
+  select(-part_age,-part_gender,-part_hh_education_main_earner,-part_income,-part_education,-part_occupation_main_earner,-part_occupation,-part_employstatus)
+
+logisticdataset_noage <- logisticdataset %>%
+  select(-part_age,-part_hh_education_main_earner,-part_income,-part_education,-part_occupation_main_earner,-part_occupation,-part_employstatus)
+
+logisticdataset_children <- logisticdataset %>%
+  filter(adult_cat == "Children") %>% select(-employstatus)
+
+logisticdataset_noagegender_children <- logisticdataset_noagegender %>%
+  filter(adult_cat == "Children") %>% select(-employstatus)
+
+logisticdataset_adult <- logisticdataset %>%
+  filter(adult_cat == "Adult")
+
+logisticdataset_noage_adult <- logisticdataset_noage %>%
+  filter(adult_cat == "Adult")
+
+logisticdataset_elderly <- logisticdataset %>%
+  filter(adult_cat == "Elderly")
+
+logisticdataset_noage_Elderly <- logisticdataset_noage %>%
+  filter(adult_cat == "Elderly")
+
+table(logisticdataset_noagegender_children$hhsize_cat) #No category 1
+logisticdataset_noagegender_children$hhsize_cat <- relevel(logisticdataset_noagegender_children$hhsize_cat, ref = "2")
+
+table(logisticdataset_noage_Elderly$hhsize_cat) #Almost no participants in 2 highest categories
+logisticdataset_noage_Elderly <- logisticdataset_noage_Elderly %>%
+  mutate(hhsize_elderly = as.factor(ifelse(hh_size == 1, "1",
+                                           ifelse(hh_size == 2, "2","3+"))))
+logisticdataset_noage_Elderly$hhsize_elderly <- relevel(logisticdataset_noage_Elderly$hhsize_elderly, ref = "1")
+
+
+##########################################################
+################# Dataset for clustering #################
+##########################################################
+
 nonhouseholdcontacts <- contact_extra %>%
   filter(cnt_household == 0) %>%
   select("part_uid","wave","cont_id")
@@ -475,7 +605,7 @@ nonhouseholdcontacts <- nonhouseholdcontacts %>%
   arrange(part_uid,wave) %>%
   group_by(part_uid) %>%
   left_join(physcontact, by = c("part_uid_wave" = "part_id","cont_id"))
-  
+
 nonhouseholdcontacts$wave <- as.factor(nonhouseholdcontacts$wave)
 
 # Include variables from finaldataset
