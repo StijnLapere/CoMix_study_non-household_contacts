@@ -196,11 +196,11 @@ modelchildrensigma1 <- gamlss(num_nonhouseh_cont ~ part_face_mask+
                                        re(random = ~1|part_uid),
                                      sigma.formula = ~part_face_mask+
                                 area_3_name+holiday+wd+hhsize_cat+wavecount+
-                                pvc(day_number)+
-                                re(random = ~1|part_uid), 
+                                cs(day_number), 
                                      family = GPO, 
                                      data = na.omit(finaldataset_noagegender_children),
                                      control = gamlss.control(n.cyc = 2000)) 
+#93 iterations, AIC = 26871.4
 
 modelchildrensigma2 <- gamlss(num_nonhouseh_cont ~ part_face_mask+
                                 area_3_name+holiday+wd+hhsize_cat+wavecount+holiday:area_3_name+
@@ -208,8 +208,85 @@ modelchildrensigma2 <- gamlss(num_nonhouseh_cont ~ part_face_mask+
                                 re(random = ~1|part_uid),
                               sigma.formula = ~part_face_mask+
                                 area_3_name+holiday+wd+hhsize_cat+wavecount+holiday:area_3_name+
-                                pvc(day_number)+
-                                re(random = ~1|part_uid), 
+                                cs(day_number), 
                               family = GPO, 
                               data = na.omit(finaldataset_noagegender_children),
                               control = gamlss.control(n.cyc = 2000)) 
+#50 iterations, AIC = 26876.1 --> No interaction effect
+
+## Can we remove a main effect?
+modelchildrensigmanofacemask <- gamlss(num_nonhouseh_cont ~ part_face_mask+
+                                area_3_name+holiday+wd+hhsize_cat+wavecount+holiday:area_3_name+
+                                pvc(day_number)+
+                                re(random = ~1|part_uid),
+                              sigma.formula = ~area_3_name+holiday+wd+hhsize_cat+wavecount+
+                                cs(day_number), 
+                              family = GPO, 
+                              data = na.omit(finaldataset_noagegender_children),
+                              control = gamlss.control(n.cyc = 2000)) 
+#65 iterations, AIC = 26890.2
+
+modelchildrensigmanoarea <- gamlss(num_nonhouseh_cont ~ part_face_mask+
+                                area_3_name+holiday+wd+hhsize_cat+wavecount+holiday:area_3_name+
+                                pvc(day_number)+
+                                re(random = ~1|part_uid),
+                              sigma.formula = ~part_face_mask+
+                                holiday+wd+hhsize_cat+wavecount+
+                                cs(day_number), 
+                              family = GPO, 
+                              data = na.omit(finaldataset_noagegender_children),
+                              control = gamlss.control(n.cyc = 2000)) 
+#153 iterations, AIC = 26926.9
+
+modelchildrensigmanoholiday <- gamlss(num_nonhouseh_cont ~ part_face_mask+
+                                area_3_name+holiday+wd+hhsize_cat+wavecount+holiday:area_3_name+
+                                pvc(day_number)+
+                                re(random = ~1|part_uid),
+                              sigma.formula = ~part_face_mask+
+                                area_3_name+wd+hhsize_cat+wavecount+
+                                cs(day_number), 
+                              family = GPO, 
+                              data = na.omit(finaldataset_noagegender_children),
+                              control = gamlss.control(n.cyc = 2000))
+#124 iterations, AIC = 26884.5
+
+modelchildrensigmanowd <- gamlss(num_nonhouseh_cont ~ part_face_mask+
+                                area_3_name+holiday+wd+hhsize_cat+wavecount+holiday:area_3_name+
+                                pvc(day_number)+
+                                re(random = ~1|part_uid),
+                              sigma.formula = ~part_face_mask+
+                                area_3_name+holiday+hhsize_cat+wavecount+
+                                cs(day_number), 
+                              family = GPO, 
+                              data = na.omit(finaldataset_noagegender_children),
+                              control = gamlss.control(n.cyc = 2000)) 
+#38 iterations, AIC = 26872.4
+
+modelchildrensigmanohhsize <- gamlss(num_nonhouseh_cont ~ part_face_mask+
+                                area_3_name+holiday+wd+hhsize_cat+wavecount+holiday:area_3_name+
+                                pvc(day_number)+
+                                re(random = ~1|part_uid),
+                              sigma.formula = ~part_face_mask+
+                                area_3_name+holiday+wd+wavecount+
+                                cs(day_number), 
+                              family = GPO, 
+                              data = na.omit(finaldataset_noagegender_children),
+                              control = gamlss.control(n.cyc = 2000))
+#369 iterations, AIC = 26880.5
+
+modelchildrensigmanowavecount <- gamlss(num_nonhouseh_cont ~ part_face_mask+
+                                area_3_name+holiday+wd+hhsize_cat+wavecount+holiday:area_3_name+
+                                pvc(day_number)+
+                                re(random = ~1|part_uid),
+                              sigma.formula = ~part_face_mask+
+                                area_3_name+holiday+wd+hhsize_cat+
+                                cs(day_number), 
+                              family = GPO, 
+                              data = na.omit(finaldataset_noagegender_children),
+                              control = gamlss.control(n.cyc = 2000)) 
+#47 iterations, AIC = 26951.5
+
+### No main effects removed
+
+### Final model: modelchildrensigma1
+finalmodelchildrenGPO <- modelchildrensigma1
