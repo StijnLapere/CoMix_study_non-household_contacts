@@ -460,6 +460,7 @@ modelelderlyadditive1 <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_ris
                                     family = GPO, 
                                     data = na.omit(finaldataset_noage_Elderly),
                                     control = gamlss.control(n.cyc = 1000))
+#75 iterations, AIC = 23843.2
 
 modelelderlyadditive2 <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_risk+
                                       part_face_mask+part_symp_none+area_3_name+holiday+wd+
@@ -471,6 +472,7 @@ modelelderlyadditive2 <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_ris
                                     family = GPO, 
                                     data = na.omit(finaldataset_noage_Elderly),
                                     control = gamlss.control(n.cyc = 1000))
+#92 iterations, AIC = 23839.6
 
 modelelderlyadditive3 <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_risk+
                                   part_face_mask+part_symp_none+area_3_name+holiday+wd+
@@ -481,6 +483,7 @@ modelelderlyadditive3 <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_ris
                                 family = GPO, 
                                 data = na.omit(finaldataset_noage_Elderly),
                                 control = gamlss.control(n.cyc = 1000))
+#85 iterations, AIC = 23856.4
 
 modelelderlyadditive4 <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_risk+
                                   part_face_mask+part_symp_none+area_3_name+holiday+wd+
@@ -492,4 +495,33 @@ modelelderlyadditive4 <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_ris
                                 family = GPO, 
                                 data = na.omit(finaldataset_noage_Elderly),
                                 control = gamlss.control(n.cyc = 1000))
+#69 iterations, AIC = 23852.4
+
+## NO SIGNIFICANT IMPROVEMENTS
+
+modelelderlysigma1 <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_risk+
+                                      part_face_mask+part_symp_none+area_3_name+holiday+wd+
+                                      hhsize_elderly+wavecount+part_gender+part_vacc:part_face_mask+
+                                      pvc(day_number, by = part_vacc:part_symp_none)+
+                                      re(random = ~1|part_uid),
+                                    sigma.formula = ~part_vacc+part_elevated_risk+
+                               part_face_mask+part_symp_none+area_3_name+holiday+wd+
+                               hhsize_elderly+wavecount+part_gender+
+                               pvc(day_number, by = part_vacc:part_symp_none), 
+                                    family = GPO, 
+                                    data = na.omit(finaldataset_noage_Elderly),
+                                    control = gamlss.control(n.cyc = 1000))
+
+modelelderlysigma2 <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_risk+
+                               part_face_mask+part_symp_none+area_3_name+holiday+wd+
+                               hhsize_elderly+wavecount+part_gender+part_vacc:part_face_mask+
+                               pvc(day_number, by = part_vacc:part_symp_none)+
+                               re(random = ~1|part_uid),
+                             sigma.formula = ~part_vacc+part_elevated_risk+
+                               part_face_mask+part_symp_none+area_3_name+holiday+wd+
+                               hhsize_elderly+wavecount+part_gender+
+                               pvc(day_number), 
+                             family = GPO, 
+                             data = na.omit(finaldataset_noage_Elderly),
+                             control = gamlss.control(n.cyc = 1000))
 
