@@ -28,6 +28,9 @@ glmm1_adult <- glmer(
   family = binomial(link = "logit"),
   control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
 #AIC = 15804.4, -2Loglik = 15764.4, 19 param
+## Is there overdispersion?
+dispersion_glmer(glmm1_adult)
+#No (0.94), so continue with binomial distribution
 
 glmm1_adult2.1 <- glmer(
   any_nonhh_contact ~ area_3_name + holiday + wd + employstatus +
@@ -749,6 +752,9 @@ glmm2_adult <- glmer(
   family = binomial(link = "logit"),
   control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
 #AIC = 17129.650, -2Loglik = 17093.650, 17 param
+## Is there overdispersion?
+dispersion_glmer(glmm2_adult)
+#No (0.87), so continue with binomial distribution
 
 glmm2_adult2.1 <- glmer(
   any_nonhh_contact ~ area_3_name + holiday + wd + employstatus +
