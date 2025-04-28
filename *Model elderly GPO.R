@@ -675,22 +675,24 @@ rqres.plot(finalmodelelderly,2,all=FALSE)
 
 
 df <- data.frame(
-  Covariate = c("Vacc No", "Vacc Yes","Face mask No", "Face mask Yes", "Symptoms No", "Symptoms Yes", 
+  Covariate = c("Vacc No", "Vacc Yes","Elevated risk No","Elevated risk Yes","Face mask No", "Face mask Yes", "Symptoms No", "Symptoms Yes", 
                 "Brussels Hoofdstede", "Vlaams Gewest", "Waals Gewest", "Holiday No", "Holiday Yes", 
                 "Weekday", "Weekend","hh size 1", "hh size 2", "hh size 3+", 
                 "1 wave", "2 waves", "3 waves", "4 waves", "5 waves", "6 waves", "7 waves", "8+ waves",
                 "Female", "Male",
-                "Brussels Hoofdstede : Face mask No","Vlaams Gewest : Face mask Yes", "Waals Gewest : Face mask Yes"),
-  Estimate = c(0, 0.680269, 0, 0.381465, 0, -0.055198,
-               0, 0.022659, -0.178782, 0, -0.087728,
-               0, 0.039205, 0, 0.086573, -0.102832,
-               0, 0.113599, -0.236361, -0.008987, -0.297800, -0.350155, -0.313700, -0.454829,
-               0, -0.121366, 0, 0.247030, 0.074947),
-  SE = c(0, 0.040828, 0, 0.147819, 0, 0.034870,
-         0, 0.144789, 0.150306, 0, 0.028112, 
-         0, 0.028273, 0, 0.028278, 0.070358,
-         0, 0.068108, 0.072007, 0.075504, 0.077364, 0.079367, 0.078051, 0.052329,
-         0, 0.026794, 0, 0.153813, 0.161006)
+                "Vacc No : Face mask No", "Vacc Yes : Face mask Yes"),
+  Estimate = c(0, 0.655594, 0, -0.019628, 0, 0.781521, 0, -0.015642,
+               0, 0.213975, -0.145527, 0, -0.092588,
+               0, 0.058483, 0, -0.001194, -0.194896,
+               0, 0.195183, -0.159409, 0.023364, -0.242724, -0.123869, -0.234290, -0.371801,
+               0, -0.137434,
+               0, -0.069611),
+  SE = c(0, 0.094251, 0, 0.029134, 0, 0.091757, 0, 0.038261,
+         0, 0.056081, 0.059404, 0, 0.032005,
+         0, 0.032478, 0, 0.031644, 0.081320,
+         0, 0.072784, 0.076471, 0.082265, 0.082816, 0.090532, 0.084516, 0.054508,
+         0, 0.030027,
+         0, 0.099750)
 )
 
 # Compute the relative number of contacts and confidence intervals
@@ -701,12 +703,12 @@ df <- df %>%
     UpperCI = exp(Estimate + 1.96 * SE)
   )
 
-covariate_order <- rev(c("Vacc No", "Vacc Yes","Face mask No", "Face mask Yes", "Symptoms No", "Symptoms Yes", 
+covariate_order <- rev(c("Vacc No", "Vacc Yes","Elevated risk No","Elevated risk Yes","Face mask No", "Face mask Yes", "Symptoms No", "Symptoms Yes", 
                          "Brussels Hoofdstede", "Vlaams Gewest", "Waals Gewest", "Holiday No", "Holiday Yes", 
                          "Weekday", "Weekend","hh size 1", "hh size 2", "hh size 3+", 
                          "1 wave", "2 waves", "3 waves", "4 waves", "5 waves", "6 waves", "7 waves", "8+ waves",
                          "Female", "Male",
-                         "Brussels Hoofdstede : Face mask No","Vlaams Gewest : Face mask Yes", "Waals Gewest : Face mask Yes"))
+                         "Vacc No : Face mask No", "Vacc Yes : Face mask Yes"))
 
 df$Covariate <- factor(df$Covariate, levels = covariate_order)
 
