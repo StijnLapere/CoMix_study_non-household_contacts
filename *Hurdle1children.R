@@ -8,6 +8,9 @@ glmm_children <- glmer(
   family = binomial(link = "logit"),
   control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
 #AIC = 8222.7, -2Loglik = 8198.7, 11 param
+## Is there overdispersion?
+dispersion_glmer(glmm_children)
+#No (0.99), so continue with binomial distribution
 
 glmm_children2.1 <- glmer(
   any_nonhh_contact ~ area_3_name + holiday + wd + hhsize_cat +
