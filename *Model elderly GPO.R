@@ -655,3 +655,5 @@ modelelderlysigmanogender <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated
 #AIC = 23613.9
 
 ## NO LARGE IMPROVEMENTS
+
+finalmodelelderlyGPO <- modelelderlysigma3
