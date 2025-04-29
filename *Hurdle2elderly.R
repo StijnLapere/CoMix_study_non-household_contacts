@@ -144,6 +144,7 @@ hurdle2_elderly3.1 <- glmer.nb(
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
   control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+#AIC = 18123.898, -2Loglik = 18075.898, 22 param
 
 hurdle2_elderly3.2 <- glmer.nb(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
@@ -152,6 +153,7 @@ hurdle2_elderly3.2 <- glmer.nb(
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
   control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+#AIC = 18122.630, -2Loglik = 18078.630, 20 param
 
 hurdle2_elderly3.3 <- glmer.nb(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
@@ -160,7 +162,7 @@ hurdle2_elderly3.3 <- glmer.nb(
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
   control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18126.395, -2Loglik = 18086.395, 18 param
+#AIC = 18120.16, -2Loglik = 18076.16, 20 param --> BEST IMPROVEMENT
 
 hurdle2_elderly3.4 <- glmer.nb(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
@@ -169,6 +171,7 @@ hurdle2_elderly3.4 <- glmer.nb(
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
   control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+#AIC = 18122.892, -2Loglik = 18078.892, 20 param
 
 hurdle2_elderly3.5 <- glmer.nb(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
@@ -177,6 +180,7 @@ hurdle2_elderly3.5 <- glmer.nb(
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
   control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+#AIC = 18123.310, -2Loglik = 18077.310, 21 param
 
 hurdle2_elderly3.6 <- glmer.nb(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
@@ -185,6 +189,7 @@ hurdle2_elderly3.6 <- glmer.nb(
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
   control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+#AIC = 18123.068, -2Loglik = 18077.068, 21 param
 
 hurdle2_elderly3.7 <- glmer.nb(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
@@ -193,6 +198,7 @@ hurdle2_elderly3.7 <- glmer.nb(
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
   control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+#AIC = 18121.737, -2Loglik = 18077.737, 20 param
 
 hurdle2_elderly3.8 <- glmer.nb(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
@@ -201,6 +207,7 @@ hurdle2_elderly3.8 <- glmer.nb(
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
   control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+#AIC = 18122.316, -2Loglik = 18078.316, 20 param
 
 hurdle2_elderly3.9 <- glmer.nb(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
@@ -209,6 +216,7 @@ hurdle2_elderly3.9 <- glmer.nb(
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
   control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+#AIC = 18124.173, -2Loglik = 18078.173, 21 param
 
 hurdle2_elderly3.10 <- glmer.nb(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
@@ -217,6 +225,7 @@ hurdle2_elderly3.10 <- glmer.nb(
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
   control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+#AIC = 18125.275, -2Loglik = 18075.275, 23 param
 
 hurdle2_elderly3.11 <- glmer.nb(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
@@ -225,9 +234,11 @@ hurdle2_elderly3.11 <- glmer.nb(
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
   control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+#AIC = 18122.46, -2Loglik = 18078.46, 20 param
 
+pchisq(18078.893-18076.16, df=length(fixef(hurdle2_elderly3.3))-length(fixef(hurdle2_elderly2.9)), lower.tail=FALSE)
 
-
+## NO SIGNIFICANT IMPROVEMENT ANYMORE
 
 
 
