@@ -19,7 +19,7 @@ counts_per_wave <- contact_extra %>%
 
 ### This is the correct version
 counts_per_wave <- participant_extra %>%
-  select(part_uid, wave, n_cnt_all)
+  dplyr::select(part_uid, wave, n_cnt_all)
 
 # Count number of household contacts per participant and wave
 contact_extra_columns <- contact_extra %>%
@@ -50,17 +50,17 @@ contactextrawaves <- contactextrawaves %>%
 contactextrawaves_short <- contactextrawaves %>%
   mutate(part_uid_wave = as.integer(paste0(substr(part_uid, 4, nchar(part_uid)), sprintf("%02d", wave))))
 
-participant_extra_columns <- participant_extra %>% select("part_id","part_social_group_be","part_vacc","part_elevated_risk","part_face_mask","part_symp_none","area_3_name","part_age_group","part_hh_education_main_earner","part_income","part_education","part_occupation_main_earner","part_occupation","part_employstatus")
+participant_extra_columns <- participant_extra %>% dplyr::select("part_id","part_social_group_be","part_vacc","part_elevated_risk","part_face_mask","part_symp_none","area_3_name","part_age_group","part_hh_education_main_earner","part_income","part_education","part_occupation_main_earner","part_occupation","part_employstatus")
 
 contactextrawaves_merged <- contactextrawaves_short %>%
   left_join(participant_extra_columns, by = c("part_uid_wave" = "part_id"))
 
-comix_be_sday_columns <- sday %>% select("part_id","holiday")
+comix_be_sday_columns <- sday %>% dplyr::select("part_id","holiday")
 
 contactextrawaves_merged <- contactextrawaves_merged %>%
   left_join(comix_be_sday_columns, by = c("part_uid_wave" = "part_id"))
 
-participant_common_columns <- participant_common %>% select("part_id","part_age","part_gender")
+participant_common_columns <- participant_common %>% dplyr::select("part_id","part_age","part_gender")
 
 contactextrawaves_merged <- contactextrawaves_merged %>%
   left_join(participant_common_columns, by = c("part_uid_wave" = "part_id"))
@@ -82,7 +82,7 @@ for (id in unique_ids) {
 contactextrawaves_merged <- contactextrawaves_merged %>%
   mutate(part_uid_wave_HH = as.character(paste0("HH", part_uid_wave)))
 
-hh_common_columns <- hh_common %>% select("hh_id","hh_size")
+hh_common_columns <- hh_common %>% dplyr::select("hh_id","hh_size")
 
 contactextrawaves_merged <- contactextrawaves_merged %>%
   left_join(hh_common_columns, by = c("part_uid_wave_HH" = "hh_id"))
@@ -92,7 +92,7 @@ participant_extra_columns <- participant_extra %>%
   arrange(part_uid, wave) %>%  
   group_by(part_uid, wave) %>%
   slice(1) %>%  # Keep only the first row per (part_uid, wave)
-  ungroup() %>% select("part_uid","wave","survey_weekday","survey_date")
+  ungroup() %>% dplyr::select("part_uid","wave","survey_weekday","survey_date")
 
 contactextrawaves_merged <- contactextrawaves_merged %>%
   left_join(participant_extra_columns, by = c("part_uid","wave"))
@@ -108,7 +108,7 @@ contactextrawaves_merged <- contactextrawaves_merged %>%
 contactextrawaves_NAage <- contactextrawaves_merged %>%
   group_by(part_uid) %>%
   filter(any(is.na(adult_cat))) %>%
-  select(part_uid_wave,part_age,part_age_group) %>%
+  dplyr::select(part_uid_wave,part_age,part_age_group) %>%
   ungroup()
 
 contactextrawaves_merged$adult_cat[contactextrawaves_merged$part_uid == "be_20523"] = "Adult"
@@ -201,6 +201,16 @@ contactextrawaves_merged2 <- contactextrawaves_merged %>%
                                                                          ifelse(row_number() == 7, "7", ">=8"))))))))) %>% 
   arrange(part_uid) %>% group_by(part_uid) %>%  as.data.frame()
 
+contactextrawaves_merged2 <- contactextrawaves_merged %>%  
+  group_by(part_uid) %>% 
+  arrange(part_uid) %>%
+  # add column wavecount which represents the n-th wave for each participant
+  mutate(wavecountshort = as.factor(ifelse(row_number() == 1, "1",
+                                      ifelse(row_number() == 2, "2",">=3")))) %>% 
+  arrange(part_uid) %>% group_by(part_uid) %>%  as.data.frame()
+
+
+
 contact_extra <- contact_extra %>%
   mutate(cnt_adult_cat = case_when(
     cnt_age_group == "0-11" ~ "Children",
@@ -224,7 +234,7 @@ contact_extra <- contact_extra %>%
 
 contact_extra_NAagegroup <- contact_extra %>%
   filter(is.na(cnt_adult_cat)) %>%
-  select(part_uid,wave,cnt_adult_cat,cnt_age_group,cnt_age)
+  dplyr::select(part_uid,wave,cnt_adult_cat,cnt_age_group,cnt_age)
 
 table(contact_extra_NAagegroup$cnt_age)
 
@@ -255,7 +265,7 @@ table(contact_extra$cnt_adult_cat,useNA = "ifany")
 
 contacts_columns <- contact_extra %>% 
   filter(cnt_household == 0) %>%
-  select("part_uid","wave","cnt_adult_cat")
+  dplyr::select("part_uid","wave","cnt_adult_cat")
 
 contacts_summary <- contacts_columns %>%
   group_by(part_uid, wave, cnt_adult_cat) %>%
@@ -319,6 +329,7 @@ finaldataset$employstatus <- relevel(finaldataset$employstatus, ref = "Not in la
 finaldataset$educationmainearner <- factor(finaldataset$educationmainearner, levels = c("Low","Medium","High"))
 finaldataset$educationmainearner <- relevel(finaldataset$educationmainearner, ref = "Medium")
 finaldataset$wavecount <- relevel(finaldataset$wavecount, ref = "1")
+finaldataset$wavecountshort <- relevel(finaldataset$wavecountshort, ref = "1")
 
 
 colSums(is.na(finaldataset))
@@ -327,7 +338,7 @@ colSums(is.na(finaldataset))
 finaldataset_NAvacc <- finaldataset %>%
   group_by(part_uid) %>%
   filter(any(is.na(part_vacc))) %>% 
-  select(part_uid,wave,part_vacc,adult_cat) %>%
+  dplyr::select(part_uid,wave,part_vacc,adult_cat) %>%
   ungroup()
 
 # If part_vacc = Yes, the vaccination status of that participant will be Yes for the next waves as well
@@ -352,7 +363,7 @@ colSums(is.na(finaldataset))
 finaldataset_NAvacc <- finaldataset %>%
   group_by(part_uid) %>%
   filter(any(is.na(part_vacc))) %>% 
-  select(part_uid,wave,part_vacc,adult_cat) %>%
+  dplyr::select(part_uid,wave,part_vacc,adult_cat) %>%
   ungroup()
 
 # Fill in missing values with previous value
@@ -366,7 +377,7 @@ finaldataset$part_vacc[finaldataset$adult_cat == "Children" & is.na(finaldataset
 finaldataset_NAgender <- finaldataset %>%
   group_by(part_uid) %>%
   filter(any(is.na(part_gender))) %>%
-  select(part_uid,wave,part_gender,adult_cat) %>%
+  dplyr::select(part_uid,wave,part_gender,adult_cat) %>%
   ungroup()
 
 # For every participant, the gender at the first wave of participation is used
@@ -383,7 +394,7 @@ colSums(is.na(finaldataset))
 finaldataset_NAelevrisk <- finaldataset %>%
   group_by(part_uid) %>%
   filter(any(is.na(part_elevated_risk))) %>%
-  select(part_uid,wave,part_elevated_risk,adult_cat) %>%
+  dplyr::select(part_uid,wave,part_elevated_risk,adult_cat) %>%
   ungroup()
 
 # It is assumed that children have no elevated risk
@@ -397,7 +408,7 @@ finaldataset <- finaldataset %>%
 finaldataset_NAfacemask <- finaldataset %>%
   group_by(part_uid) %>%
   filter(any(is.na(part_face_mask))) %>%
-  select(part_uid,wave,part_face_mask,adult_cat) %>%
+  dplyr::select(part_uid,wave,part_face_mask,adult_cat) %>%
   ungroup()
 
 # It is assumed that children do not have to wear a face mask
@@ -410,7 +421,7 @@ finaldataset <- finaldataset %>%
 finaldataset_NAsympnone <- finaldataset %>%
   group_by(part_uid) %>%
   filter(any(is.na(part_symp_none))) %>%
-  select(part_uid,wave,part_symp_none,adult_cat) %>%
+  dplyr::select(part_uid,wave,part_symp_none,adult_cat) %>%
   ungroup()
 
 # It is assumed that children have no symptoms
@@ -423,16 +434,16 @@ finaldataset <- finaldataset %>%
 colSums(is.na(finaldataset))
 
 finaldataset_noagegender <- finaldataset %>%
-  select(-part_age,-part_gender,-part_hh_education_main_earner,-part_income,-part_education,-part_occupation_main_earner,-part_occupation,-part_employstatus)
+  dplyr::select(-part_age,-part_gender,-part_hh_education_main_earner,-part_income,-part_education,-part_occupation_main_earner,-part_occupation,-part_employstatus)
 
 finaldataset_noage <- finaldataset %>%
-  select(-part_age,-part_hh_education_main_earner,-part_income,-part_education,-part_occupation_main_earner,-part_occupation,-part_employstatus)
+  dplyr::select(-part_age,-part_hh_education_main_earner,-part_income,-part_education,-part_occupation_main_earner,-part_occupation,-part_employstatus)
 
 finaldataset_children <- finaldataset %>%
-  filter(adult_cat == "Children") %>% select(-employstatus)
+  filter(adult_cat == "Children") %>% dplyr::select(-employstatus)
 
 finaldataset_noagegender_children <- finaldataset_noagegender %>%
-  filter(adult_cat == "Children") %>% select(-employstatus)
+  filter(adult_cat == "Children") %>% dplyr::select(-employstatus)
 
 finaldataset_adult <- finaldataset %>%
   filter(adult_cat == "Adult")
@@ -462,7 +473,7 @@ finaldataset_noage_Elderly$hhsize_elderly <- relevel(finaldataset_noage_Elderly$
 ##########################################################
 
 logisticdataset <- contact_extra %>%
-  select("part_uid","wave","cont_id", "cnt_household") %>%
+  dplyr::select("part_uid","wave","cont_id", "cnt_household") %>%
   mutate(cnt_nonhousehold = case_when(
     cnt_household == "0" ~ "1",
     cnt_household == "1" ~ "0",
@@ -476,19 +487,19 @@ logisticdataset$wave <- as.factor(logisticdataset$wave)
 
 # Include variables from finaldataset
 othervariables <- finaldataset %>%
-  select("part_uid","wave","num_waves_participated","area_3_name",
+  dplyr::select("part_uid","wave","num_waves_participated","area_3_name",
          "part_age_group","part_hh_education_main_earner","part_income",
          "part_education","part_occupation_main_earner","part_occupation",
          "part_employstatus","holiday","part_age","hh_size","survey_weekday",
          "survey_date","adult_cat","adult","elderly","wd",
-         "employstatus","educationmainearner","hhsize_cat","wavecount",
+         "employstatus","educationmainearner","hhsize_cat","wavecount","wavecountshort",
          "part_vacc","part_elevated_risk","part_face_mask","part_symp_none",
          "part_gender")
 
 logisticdataset <- logisticdataset %>%
   left_join(othervariables, by = c("part_uid","wave"))
 
-participant_extra_columns <- participant_extra %>% select("part_id","part_social_group_be")
+participant_extra_columns <- participant_extra %>% dplyr::select("part_id","part_social_group_be")
 
 logisticdataset <- logisticdataset %>%
   left_join(participant_extra_columns, by = c("part_uid_wave" = "part_id"))
@@ -499,7 +510,7 @@ logisticdataset <- logisticdataset %>%
            part_education,part_occupation_main_earner,part_occupation,
            part_employstatus,holiday,part_age,hh_size,survey_weekday,
            survey_date,adult_cat,adult,elderly,wd,
-           employstatus,educationmainearner,hhsize_cat,wavecount,
+           employstatus,educationmainearner,hhsize_cat,wavecount,wavecountshort,
            part_vacc,part_elevated_risk,part_face_mask,part_symp_none,
            part_gender,part_social_group_be) %>%
   summarise(
@@ -548,22 +559,23 @@ logisticdataset$employstatus <- relevel(logisticdataset$employstatus, ref = "Not
 logisticdataset$educationmainearner <- factor(logisticdataset$educationmainearner, levels = c("Low","Medium","High"))
 logisticdataset$educationmainearner <- relevel(logisticdataset$educationmainearner, ref = "Medium")
 logisticdataset$wavecount <- relevel(logisticdataset$wavecount, ref = "1")
+logisticdataset$wavecountshort <- relevel(logisticdataset$wavecountshort, ref = "1")
 logisticdataset$any_nonhh_contact <- factor(logisticdataset$any_nonhh_contact, levels = c("0","1"))
 logisticdataset$any_nonhh_contact <- relevel(logisticdataset$any_nonhh_contact, ref = "0")
 
 colSums(is.na(logisticdataset))
 
 logisticdataset_noagegender <- logisticdataset %>%
-  select(-part_age,-part_gender,-part_hh_education_main_earner,-part_income,-part_education,-part_occupation_main_earner,-part_occupation,-part_employstatus)
+  dplyr::select(-part_age,-part_gender,-part_hh_education_main_earner,-part_income,-part_education,-part_occupation_main_earner,-part_occupation,-part_employstatus)
 
 logisticdataset_noage <- logisticdataset %>%
-  select(-part_age,-part_hh_education_main_earner,-part_income,-part_education,-part_occupation_main_earner,-part_occupation,-part_employstatus)
+  dplyr::select(-part_age,-part_hh_education_main_earner,-part_income,-part_education,-part_occupation_main_earner,-part_occupation,-part_employstatus)
 
 logisticdataset_children <- logisticdataset %>%
-  filter(adult_cat == "Children") %>% select(-employstatus)
+  filter(adult_cat == "Children") %>% dplyr::select(-employstatus)
 
 logisticdataset_noagegender_children <- logisticdataset_noagegender %>%
-  filter(adult_cat == "Children") %>% select(-employstatus)
+  filter(adult_cat == "Children") %>% dplyr::select(-employstatus)
 
 logisticdataset_adult <- logisticdataset %>%
   filter(adult_cat == "Adult")
@@ -586,6 +598,48 @@ logisticdataset_noage_Elderly <- logisticdataset_noage_Elderly %>%
                                            ifelse(hh_size == 2, "2","3+"))))
 logisticdataset_noage_Elderly$hhsize_elderly <- relevel(logisticdataset_noage_Elderly$hhsize_elderly, ref = "1")
 
+## In fact, we also have to include participations with 0 reported contacts
+logisticdatasettotal <- finaldataset %>%
+  mutate(any_nonhh_contact = as.integer(num_nonhouseh_cont > 0))
+
+logisticdatasettotal$any_nonhh_contact <- factor(logisticdatasettotal$any_nonhh_contact, levels = c("0","1"))
+logisticdatasettotal$any_nonhh_contact <- relevel(logisticdatasettotal$any_nonhh_contact, ref = "0")
+
+colSums(is.na(logisticdatasettotal))
+
+logisticdatasettotal_noagegender <- logisticdatasettotal %>%
+  dplyr::select(-part_age,-part_gender,-part_hh_education_main_earner,-part_income,-part_education,-part_occupation_main_earner,-part_occupation,-part_employstatus)
+
+logisticdatasettotal_noage <- logisticdatasettotal %>%
+  dplyr::select(-part_age,-part_hh_education_main_earner,-part_income,-part_education,-part_occupation_main_earner,-part_occupation,-part_employstatus)
+
+logisticdatasettotal_children <- logisticdatasettotal %>%
+  filter(adult_cat == "Children") %>% dplyr::select(-employstatus)
+
+logisticdatasettotal_noagegender_children <- logisticdatasettotal_noagegender %>%
+  filter(adult_cat == "Children") %>% dplyr::select(-employstatus)
+
+logisticdatasettotal_adult <- logisticdatasettotal %>%
+  filter(adult_cat == "Adult")
+
+logisticdatasettotal_noage_adult <- logisticdatasettotal_noage %>%
+  filter(adult_cat == "Adult")
+
+logisticdatasettotal_elderly <- logisticdatasettotal %>%
+  filter(adult_cat == "Elderly")
+
+logisticdatasettotal_noage_Elderly <- logisticdatasettotal_noage %>%
+  filter(adult_cat == "Elderly")
+
+table(logisticdatasettotal_noagegender_children$hhsize_cat) #No category 1
+logisticdatasettotal_noagegender_children$hhsize_cat <- relevel(logisticdatasettotal_noagegender_children$hhsize_cat, ref = "2")
+
+table(logisticdatasettotal_noage_Elderly$hhsize_cat) #Almost no participants in 2 highest categories
+logisticdatasettotal_noage_Elderly <- logisticdatasettotal_noage_Elderly %>%
+  mutate(hhsize_elderly = as.factor(ifelse(hh_size == 1, "1",
+                                           ifelse(hh_size == 2, "2","3+"))))
+logisticdatasettotal_noage_Elderly$hhsize_elderly <- relevel(logisticdatasettotal_noage_Elderly$hhsize_elderly, ref = "1")
+
 
 ##########################################################
 ################# Dataset for clustering #################
@@ -593,13 +647,13 @@ logisticdataset_noage_Elderly$hhsize_elderly <- relevel(logisticdataset_noage_El
 
 nonhouseholdcontacts <- contact_extra %>%
   filter(cnt_household == 0) %>%
-  select("part_uid","wave","cont_id")
+  dplyr::select("part_uid","wave","cont_id")
 
 nonhouseholdcontacts <- nonhouseholdcontacts %>%
   mutate(part_uid_wave = as.integer(paste0(substr(part_uid, 4, nchar(part_uid)), sprintf("%02d", wave))))
 
 physcontact <- contact_common %>%
-  select("part_id","cont_id","phys_contact","cnt_home","cnt_work","cnt_school","cnt_transport","cnt_leisure","cnt_otherplace")
+  dplyr::select("part_id","cont_id","phys_contact","cnt_home","cnt_work","cnt_school","cnt_transport","cnt_leisure","cnt_otherplace")
 
 nonhouseholdcontacts <- nonhouseholdcontacts %>%
   arrange(part_uid,wave) %>%
@@ -610,19 +664,19 @@ nonhouseholdcontacts$wave <- as.factor(nonhouseholdcontacts$wave)
 
 # Include variables from finaldataset
 othervariables <- finaldataset %>%
-  select("part_uid","wave","num_waves_participated","area_3_name",
+  dplyr::select("part_uid","wave","num_waves_participated","area_3_name",
          "part_age_group","part_hh_education_main_earner","part_income",
          "part_education","part_occupation_main_earner","part_occupation",
          "part_employstatus","holiday","part_age","hh_size","survey_weekday",
          "survey_date","adult_cat","adult","elderly","wd",
-         "employstatus","educationmainearner","hhsize_cat","wavecount",
+         "employstatus","educationmainearner","hhsize_cat","wavecount","wavecountshort",
          "part_vacc","part_elevated_risk","part_face_mask","part_symp_none",
          "part_gender")
 
 nonhouseholdcontacts <- nonhouseholdcontacts %>%
   left_join(othervariables, by = c("part_uid","wave"))
 
-participant_extra_columns <- participant_extra %>% select("part_id","part_social_group_be")
+participant_extra_columns <- participant_extra %>% dplyr::select("part_id","part_social_group_be")
 
 nonhouseholdcontacts <- nonhouseholdcontacts %>%
   left_join(participant_extra_columns, by = c("part_uid_wave" = "part_id"))
@@ -650,7 +704,7 @@ contact_extra <- contact_extra %>%
 
 contact_extra_NAagegroup <- contact_extra %>%
   filter(is.na(cnt_adult_cat)) %>%
-  select(part_uid,wave,cnt_adult_cat,cnt_age_group,cnt_age)
+  dplyr::select(part_uid,wave,cnt_adult_cat,cnt_age_group,cnt_age)
 
 table(contact_extra_NAagegroup$cnt_age)
 
@@ -681,7 +735,7 @@ table(contact_extra$cnt_adult_cat,useNA = "ifany")
 
 contacts_columns <- contact_extra %>% 
   filter(cnt_household == 0) %>%
-  select("part_uid","cont_id","wave","cnt_adult_cat")
+  dplyr::select("part_uid","cont_id","wave","cnt_adult_cat")
 
 contacts_columns$wave <- as.factor(contacts_columns$wave)
 
@@ -741,6 +795,7 @@ nonhouseholdcontacts$employstatus <- relevel(nonhouseholdcontacts$employstatus, 
 nonhouseholdcontacts$educationmainearner <- factor(nonhouseholdcontacts$educationmainearner, levels = c("Low","Medium","High"))
 nonhouseholdcontacts$educationmainearner <- relevel(nonhouseholdcontacts$educationmainearner, ref = "Medium")
 nonhouseholdcontacts$wavecount <- relevel(nonhouseholdcontacts$wavecount, ref = "1")
+nonhouseholdcontacts$wavecountshort <- relevel(nonhouseholdcontacts$wavecountshort, ref = "1")
 nonhouseholdcontacts$phys_contact <- case_when(nonhouseholdcontacts$phys_contact == 1 ~ 1,nonhouseholdcontacts$phys_contact == 2 ~ 0)
 nonhouseholdcontacts$phys_contact <- factor(nonhouseholdcontacts$phys_contact, levels = c("0","1"))
 nonhouseholdcontacts$phys_contact <- relevel(nonhouseholdcontacts$phys_contact, ref = "0")
@@ -752,16 +807,16 @@ nonhouseholdcontacts$place <- relevel(nonhouseholdcontacts$place, ref = "Home")
 colSums(is.na(nonhouseholdcontacts))
 
 nonhouseholdcontacts_noagegender <- nonhouseholdcontacts %>%
-  select(-part_age,-part_gender,-part_hh_education_main_earner,-part_income,-part_education,-part_occupation_main_earner,-part_occupation,-part_employstatus)
+  dplyr::select(-part_age,-part_gender,-part_hh_education_main_earner,-part_income,-part_education,-part_occupation_main_earner,-part_occupation,-part_employstatus)
 
 nonhouseholdcontacts_noage <- nonhouseholdcontacts %>%
-  select(-part_age,-part_hh_education_main_earner,-part_income,-part_education,-part_occupation_main_earner,-part_occupation,-part_employstatus)
+  dplyr::select(-part_age,-part_hh_education_main_earner,-part_income,-part_education,-part_occupation_main_earner,-part_occupation,-part_employstatus)
 
 nonhouseholdcontacts_children <- nonhouseholdcontacts %>%
-  filter(adult_cat == "Children") %>% select(-employstatus)
+  filter(adult_cat == "Children") %>% dplyr::select(-employstatus)
 
 nonhouseholdcontacts_noagegender_children <- nonhouseholdcontacts_noagegender %>%
-  filter(adult_cat == "Children") %>% select(-employstatus)
+  filter(adult_cat == "Children") %>% dplyr::select(-employstatus)
 
 nonhouseholdcontacts_adult <- nonhouseholdcontacts %>%
   filter(adult_cat == "Adult")
