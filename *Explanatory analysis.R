@@ -100,19 +100,30 @@ ggplot(contactextrawaves_waveage, aes(x = wave)) +
   labs(x = "Wave", y = "Average Contacts", color = "Age category") +
   theme_minimal()
 
+contactextrawaves_waveage$wave_num <- as.numeric(contactextrawaves_waveage$wave)
+
 # Non-household contacts
-ggplot(contactextrawaves_waveage, aes(x = wave)) +
+ggplot(contactextrawaves_waveage, aes(x = wave_num)) +  
+  annotate("rect", xmin = 1, xmax = 2, ymin = -Inf, ymax = Inf, fill = "gray80", alpha = 0.5) +
+  annotate("rect", xmin = 8, xmax = 9, ymin = -Inf, ymax = Inf, fill = "gray80", alpha = 0.5) +
+  annotate("rect", xmin = 15, xmax = 18, ymin = -Inf, ymax = Inf, fill = "gray80", alpha = 0.5) +
+  annotate("rect", xmin = 27, xmax = 28, ymin = -Inf, ymax = Inf, fill = "gray80", alpha = 0.5) +
   geom_ribbon(aes(ymin = mean_nonhouseh_contacts - 1.96*se_nonhouseh_contacts,
                   ymax = mean_nonhouseh_contacts + 1.96*se_nonhouseh_contacts,
                   fill = adult_cat, group = adult_cat), alpha = 0.2) +
   geom_line(aes(y = mean_nonhouseh_contacts, color = adult_cat, group = adult_cat), size = 1, linetype = "dashed") +
-  geom_ribbon(aes(ymin = total_mean_nonhouseh_contacts - 1.96 * se_total_nonhouseh_contacts, ymax = total_mean_nonhouseh_contacts + 1.96 * se_total_nonhouseh_contacts),
+  geom_ribbon(aes(ymin = total_mean_nonhouseh_contacts - 1.96 * se_total_nonhouseh_contacts,
+                  ymax = total_mean_nonhouseh_contacts + 1.96 * se_total_nonhouseh_contacts),
               fill = "black", group = 1, alpha = 0.2) +
   geom_line(aes(y = total_mean_nonhouseh_contacts, group = 1),
             color = "black", size = 1) +
   
+  scale_x_continuous(breaks = contactextrawaves_waveage$wave_num,
+                     labels = contactextrawaves_waveage$wave) +
+  
   labs(x = "Wave", y = "Average number of non-household contacts", color = "Age category", fill = "Age category") +
-  theme_minimal()
+  theme_minimal()+
+  theme(panel.grid.minor.x = element_blank())
 
 ### Relative percentages of age distribution of new participation per wave 
 contactextrawaves_newwaveage <- finaldataset %>%
@@ -611,10 +622,1255 @@ table(finaldataset$wavecount)
 table(finaldataset$wavecount)/39028
 
 hist(finaldataset$num_nonhouseh_cont[finaldataset$num_nonhouseh_cont <= 10],
-     breaks = c(0,1,2,3,4,5,6,7,8,9,10),
+     breaks = c(-0.5,0.5,1.5,2.5,3.5,4.5,5.5,6.5,7.5,8.5,9.5,10.5),
      main="",
-     xlab = "Number of non-household contacts")
+     xlab = "Number of non-household contacts",
+     ylab = "Frequency")
 
 table(finaldataset$num_nonhouseh_cont)
 sum(finaldataset$num_nonhouseh_cont<100)/nrow(finaldataset)
+
+
+## Explore profiles of participants
+## Are there a lot of participants with only 0 nonhousehold contacts
+## Or are there also participants with a majority of 0 nonhousehold contacts and sometimes 1
+
+library(dplyr)
+
+# Samenvatten hoeveel keer elke participant elk uniek aantal contacten rapporteert
+summary_table <- finaldataset %>%
+  group_by(part_uid, num_nonhouseh_cont) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = num_nonhouseh_cont, values_from = n, values_fill = 0) 
+
+summary_table <- summary_table %>%
+  left_join(
+    finaldataset %>% 
+      dplyr::select(part_uid, num_waves_participated) %>% 
+      distinct(),
+    by = "part_uid"
+  )
+
+# Bekijk enkele rijen
+head(summary_table)
+
+summary_table <- summary_table %>%
+  rowwise() %>%
+  summarise(part_uid = part_uid, 
+    total_reports = num_waves_participated,
+    zero_reports = `0`,
+    prop_zero = zero_reports / total_reports
+  ) %>%
+  ungroup()
+
+high_zero_participants <- summary_table %>%
+  filter(prop_zero >= 0.9)
+nrow(high_zero_participants)/length(summary_table$prop_zero)
+
+library(ggplot2)
+
+ggplot(summary_table, aes(x = prop_zero)) +
+  geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
+  labs(
+    title = "Distribution of proportion of zero nonhousehold contacts per participant",
+    x = "Proportion of waves with 0 nonhousehold contacts",
+    y = "Number of participants"
+  ) +
+  theme_minimal()
+
+ggplot(summary_table, aes(x = prop_zero)) +
+  geom_density(fill = "lightblue") +
+  labs(
+    title = "Density plot of proportion of zero nonhousehold contacts",
+    x = "Proportion of zero nonhousehold contacts",
+    y = "Density"
+  ) +
+  theme_minimal()
+
+# How many nonzero nonhousehold contacts do participants with >80% have?
+high_zero_participants <- summary_table %>%
+  filter(prop_zero >= 0.8)
+
+nonzero_contacts <- finaldataset %>%
+  filter(
+    part_uid %in% high_zero_participants$part_uid,
+    num_nonhouseh_cont > 0
+  )
+
+table(nonzero_contacts$num_nonhouseh_cont)
+mean(nonzero_contacts$num_nonhouseh_cont)
+median(nonzero_contacts$num_nonhouseh_cont)
+
+ggplot(nonzero_contacts, aes(x = num_nonhouseh_cont)) +
+  geom_histogram(binwidth = 1, fill = "darkorange", color = "black") +
+  labs(
+    title = "Number of nonhousehold contacts for participants with >+80% zero nonhousehold contacts",
+    x = "Number of nonhousehold contacts (if > 0)",
+    y = "Frequency"
+  ) +
+  theme_minimal()
+
+high_zero_participants <- summary_table %>%
+  filter(prop_zero >= 0.9)
+
+nonzero_contacts <- finaldataset %>%
+  filter(
+    part_uid %in% high_zero_participants$part_uid,
+    num_nonhouseh_cont > 0
+  )
+
+table(nonzero_contacts$num_nonhouseh_cont)
+mean(nonzero_contacts$num_nonhouseh_cont)
+median(nonzero_contacts$num_nonhouseh_cont)
+
+high_zero_participants <- summary_table %>%
+  filter(prop_zero <= 0.1)
+
+nonzero_contacts <- finaldataset %>%
+  filter(
+    part_uid %in% high_zero_participants$part_uid,
+    num_nonhouseh_cont > 0
+  )
+
+table(nonzero_contacts$num_nonhouseh_cont)
+mean(nonzero_contacts$num_nonhouseh_cont)
+median(nonzero_contacts$num_nonhouseh_cont)
+
+### Subgroup-analysis 1: by employment status
+table(finaldataset$employstatus,finaldataset$adult_cat)
+dataemployed <- finaldataset %>% filter(employstatus == "Employed")
+datanotemployed <- finaldataset %>% filter(employstatus == "Not in labor force")
+datastudent <- finaldataset %>% filter(employstatus == "Student")
+
+# Employed
+summary_table <- dataemployed %>%
+  group_by(part_uid, num_nonhouseh_cont) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = num_nonhouseh_cont, values_from = n, values_fill = 0) 
+
+summary_table <- summary_table %>%
+  left_join(
+    dataemployed %>% 
+      dplyr::select(part_uid, num_waves_participated) %>% 
+      distinct(),
+    by = "part_uid"
+  )
+
+head(summary_table)
+
+summary_table <- summary_table %>%
+  rowwise() %>%
+  summarise(part_uid = part_uid, 
+            total_reports = num_waves_participated,
+            zero_reports = `0`,
+            prop_zero = zero_reports / total_reports
+  ) %>%
+  ungroup()
+
+ggplot(summary_table, aes(x = prop_zero)) +
+  geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
+  labs(
+    title = "Distribution of proportion of zero nonhousehold contacts per employed participant",
+    x = "Proportion of waves with 0 nonhousehold contacts",
+    y = "Number of participants"
+  ) +
+  theme_minimal()
+
+high_zero_participants <- summary_table %>%
+  filter(prop_zero >= 0.9)
+nrow(high_zero_participants)/length(summary_table$prop_zero)
+
+nonzero_contacts <- dataemployed %>%
+  filter(
+    part_uid %in% high_zero_participants$part_uid,
+    num_nonhouseh_cont > 0
+  )
+
+table(nonzero_contacts$num_nonhouseh_cont)
+mean(nonzero_contacts$num_nonhouseh_cont)
+median(nonzero_contacts$num_nonhouseh_cont)
+
+# Not in labor force
+summary_table <- datanotemployed %>%
+  group_by(part_uid, num_nonhouseh_cont) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = num_nonhouseh_cont, values_from = n, values_fill = 0) 
+
+summary_table <- summary_table %>%
+  left_join(
+    datanotemployed %>% 
+      dplyr::select(part_uid, num_waves_participated) %>% 
+      distinct(),
+    by = "part_uid"
+  )
+
+head(summary_table)
+
+summary_table <- summary_table %>%
+  rowwise() %>%
+  summarise(part_uid = part_uid, 
+            total_reports = num_waves_participated,
+            zero_reports = `0`,
+            prop_zero = zero_reports / total_reports
+  ) %>%
+  ungroup()
+
+ggplot(summary_table, aes(x = prop_zero)) +
+  geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
+  labs(
+    title = "Distribution of proportion of zero nonhousehold contacts per unemployed participant",
+    x = "Proportion of waves with 0 nonhousehold contacts",
+    y = "Number of participants"
+  ) +
+  theme_minimal()
+
+high_zero_participants <- summary_table %>%
+  filter(prop_zero >= 0.9)
+nrow(high_zero_participants)/length(summary_table$prop_zero)
+
+nonzero_contacts <- datanotemployed %>%
+  filter(
+    part_uid %in% high_zero_participants$part_uid,
+    num_nonhouseh_cont > 0
+  )
+
+table(nonzero_contacts$num_nonhouseh_cont)
+mean(nonzero_contacts$num_nonhouseh_cont)
+median(nonzero_contacts$num_nonhouseh_cont)
+
+
+# Student
+summary_table <- datastudent %>%
+  group_by(part_uid, num_nonhouseh_cont) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = num_nonhouseh_cont, values_from = n, values_fill = 0) 
+
+summary_table <- summary_table %>%
+  left_join(
+    datastudent %>% 
+      dplyr::select(part_uid, num_waves_participated) %>% 
+      distinct(),
+    by = "part_uid"
+  )
+
+head(summary_table)
+
+summary_table <- summary_table %>%
+  rowwise() %>%
+  summarise(part_uid = part_uid, 
+            total_reports = num_waves_participated,
+            zero_reports = `0`,
+            prop_zero = zero_reports / total_reports
+  ) %>%
+  ungroup()
+
+ggplot(summary_table, aes(x = prop_zero)) +
+  geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
+  labs(
+    title = "Distribution of proportion of zero nonhousehold contacts per student participant",
+    x = "Proportion of waves with 0 nonhousehold contacts",
+    y = "Number of participants"
+  ) +
+  theme_minimal()
+
+high_zero_participants <- summary_table %>%
+  filter(prop_zero >= 0.9)
+nrow(high_zero_participants)/length(summary_table$prop_zero)
+
+nonzero_contacts <- datastudent %>%
+  filter(
+    part_uid %in% high_zero_participants$part_uid,
+    num_nonhouseh_cont > 0
+  )
+
+table(nonzero_contacts$num_nonhouseh_cont)
+mean(nonzero_contacts$num_nonhouseh_cont)
+median(nonzero_contacts$num_nonhouseh_cont)
+
+
+### Subgroup-analysis 2: by age category
+datachildren <- finaldataset %>% filter(adult_cat == "Children")
+dataadults <- finaldataset %>% filter(adult_cat == "Adult")
+dataelderly <- finaldataset %>% filter(adult_cat == "Elderly")
+
+# Children
+summary_table <- datachildren %>%
+  group_by(part_uid, num_nonhouseh_cont) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = num_nonhouseh_cont, values_from = n, values_fill = 0) 
+
+summary_table <- summary_table %>%
+  left_join(
+    datachildren %>% 
+      dplyr::select(part_uid, num_waves_participated) %>% 
+      distinct(),
+    by = "part_uid"
+  )
+
+head(summary_table)
+
+summary_table <- summary_table %>%
+  rowwise() %>%
+  summarise(part_uid = part_uid, 
+            total_reports = num_waves_participated,
+            zero_reports = `0`,
+            prop_zero = zero_reports / total_reports
+  ) %>%
+  ungroup()
+
+ggplot(summary_table, aes(x = prop_zero)) +
+  geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
+  labs(
+    title = "Distribution of proportion of zero nonhousehold contacts per child",
+    x = "Proportion of waves with 0 nonhousehold contacts",
+    y = "Number of participants"
+  ) +
+  theme_minimal()
+
+high_zero_participants <- summary_table %>%
+  filter(prop_zero >= 0.9)
+nrow(high_zero_participants)/length(summary_table$prop_zero)
+
+nonzero_contacts <- datachildren %>%
+  filter(
+    part_uid %in% high_zero_participants$part_uid,
+    num_nonhouseh_cont > 0
+  )
+
+table(nonzero_contacts$num_nonhouseh_cont)
+mean(nonzero_contacts$num_nonhouseh_cont)
+median(nonzero_contacts$num_nonhouseh_cont)
+
+
+# Adults
+summary_table <- dataadults %>%
+  group_by(part_uid, num_nonhouseh_cont) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = num_nonhouseh_cont, values_from = n, values_fill = 0) 
+
+summary_table <- summary_table %>%
+  left_join(
+    dataadults %>% 
+      dplyr::select(part_uid, num_waves_participated) %>% 
+      distinct(),
+    by = "part_uid"
+  )
+
+head(summary_table)
+
+summary_table <- summary_table %>%
+  rowwise() %>%
+  summarise(part_uid = part_uid, 
+            total_reports = num_waves_participated,
+            zero_reports = `0`,
+            prop_zero = zero_reports / total_reports
+  ) %>%
+  ungroup()
+
+ggplot(summary_table, aes(x = prop_zero)) +
+  geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
+  labs(
+    title = "Distribution of proportion of zero nonhousehold contacts per adult",
+    x = "Proportion of waves with 0 nonhousehold contacts",
+    y = "Number of participants"
+  ) +
+  theme_minimal()
+
+high_zero_participants <- summary_table %>%
+  filter(prop_zero >= 0.9)
+nrow(high_zero_participants)/length(summary_table$prop_zero)
+
+nonzero_contacts <- dataadults %>%
+  filter(
+    part_uid %in% high_zero_participants$part_uid,
+    num_nonhouseh_cont > 0
+  )
+
+table(nonzero_contacts$num_nonhouseh_cont)
+mean(nonzero_contacts$num_nonhouseh_cont)
+median(nonzero_contacts$num_nonhouseh_cont)
+
+
+# Elderly
+summary_table <- dataelderly %>%
+  group_by(part_uid, num_nonhouseh_cont) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = num_nonhouseh_cont, values_from = n, values_fill = 0) 
+
+summary_table <- summary_table %>%
+  left_join(
+    dataelderly %>% 
+      dplyr::select(part_uid, num_waves_participated) %>% 
+      distinct(),
+    by = "part_uid"
+  )
+
+head(summary_table)
+
+summary_table <- summary_table %>%
+  rowwise() %>%
+  summarise(part_uid = part_uid, 
+            total_reports = num_waves_participated,
+            zero_reports = `0`,
+            prop_zero = zero_reports / total_reports
+  ) %>%
+  ungroup()
+
+ggplot(summary_table, aes(x = prop_zero)) +
+  geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
+  labs(
+    title = "Distribution of proportion of zero nonhousehold contacts per elderly",
+    x = "Proportion of waves with 0 nonhousehold contacts",
+    y = "Number of participants"
+  ) +
+  theme_minimal()
+
+high_zero_participants <- summary_table %>%
+  filter(prop_zero >= 0.9)
+nrow(high_zero_participants)/length(summary_table$prop_zero)
+
+nonzero_contacts <- dataelderly %>%
+  filter(
+    part_uid %in% high_zero_participants$part_uid,
+    num_nonhouseh_cont > 0
+  )
+
+table(nonzero_contacts$num_nonhouseh_cont)
+mean(nonzero_contacts$num_nonhouseh_cont)
+median(nonzero_contacts$num_nonhouseh_cont)
+
+
+### Subgroup-analysis 3: by area of residence
+dataFlanders <- finaldataset %>% filter(area_3_name == "Vlaams Gewest")
+dataWallonia <- finaldataset %>% filter(area_3_name == "Waals Gewest")
+dataBrussels <- finaldataset %>% filter(area_3_name == "Brussels Hoofdstede")
+
+# Vlaams Gewest
+summary_table <- dataFlanders %>%
+  group_by(part_uid, num_nonhouseh_cont) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = num_nonhouseh_cont, values_from = n, values_fill = 0) 
+
+summary_table <- summary_table %>%
+  left_join(
+    dataFlanders %>% 
+      dplyr::select(part_uid, num_waves_participated) %>% 
+      distinct(),
+    by = "part_uid"
+  )
+
+head(summary_table)
+
+summary_table <- summary_table %>%
+  rowwise() %>%
+  summarise(part_uid = part_uid, 
+            total_reports = num_waves_participated,
+            zero_reports = `0`,
+            prop_zero = zero_reports / total_reports
+  ) %>%
+  ungroup()
+
+ggplot(summary_table, aes(x = prop_zero)) +
+  geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
+  labs(
+    title = "Distribution of proportion of zero nonhousehold contacts per Flemish participant",
+    x = "Proportion of waves with 0 nonhousehold contacts",
+    y = "Number of participants"
+  ) +
+  theme_minimal()
+
+high_zero_participants <- summary_table %>%
+  filter(prop_zero >= 0.9)
+nrow(high_zero_participants)/length(summary_table$prop_zero)
+
+nonzero_contacts <- dataFlanders %>%
+  filter(
+    part_uid %in% high_zero_participants$part_uid,
+    num_nonhouseh_cont > 0
+  )
+
+table(nonzero_contacts$num_nonhouseh_cont)
+mean(nonzero_contacts$num_nonhouseh_cont)
+median(nonzero_contacts$num_nonhouseh_cont)
+
+# Waals Gewest
+summary_table <- dataWallonia %>%
+  group_by(part_uid, num_nonhouseh_cont) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = num_nonhouseh_cont, values_from = n, values_fill = 0) 
+
+summary_table <- summary_table %>%
+  left_join(
+    dataWallonia %>% 
+      dplyr::select(part_uid, num_waves_participated) %>% 
+      distinct(),
+    by = "part_uid"
+  )
+
+head(summary_table)
+
+summary_table <- summary_table %>%
+  rowwise() %>%
+  summarise(part_uid = part_uid, 
+            total_reports = num_waves_participated,
+            zero_reports = `0`,
+            prop_zero = zero_reports / total_reports
+  ) %>%
+  ungroup()
+
+ggplot(summary_table, aes(x = prop_zero)) +
+  geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
+  labs(
+    title = "Distribution of proportion of zero nonhousehold contacts per Walloon participant",
+    x = "Proportion of waves with 0 nonhousehold contacts",
+    y = "Number of participants"
+  ) +
+  theme_minimal()
+
+high_zero_participants <- summary_table %>%
+  filter(prop_zero >= 0.9)
+nrow(high_zero_participants)/length(summary_table$prop_zero)
+
+nonzero_contacts <- dataWallonia %>%
+  filter(
+    part_uid %in% high_zero_participants$part_uid,
+    num_nonhouseh_cont > 0
+  )
+
+table(nonzero_contacts$num_nonhouseh_cont)
+mean(nonzero_contacts$num_nonhouseh_cont)
+median(nonzero_contacts$num_nonhouseh_cont)
+
+# Brussels Hoofdstedelijk Gewest
+summary_table <- dataBrussels %>%
+  group_by(part_uid, num_nonhouseh_cont) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = num_nonhouseh_cont, values_from = n, values_fill = 0) 
+
+summary_table <- summary_table %>%
+  left_join(
+    dataBrussels %>% 
+      dplyr::select(part_uid, num_waves_participated) %>% 
+      distinct(),
+    by = "part_uid"
+  )
+
+head(summary_table)
+
+summary_table <- summary_table %>%
+  rowwise() %>%
+  summarise(part_uid = part_uid, 
+            total_reports = num_waves_participated,
+            zero_reports = `0`,
+            prop_zero = zero_reports / total_reports
+  ) %>%
+  ungroup()
+
+ggplot(summary_table, aes(x = prop_zero)) +
+  geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
+  labs(
+    title = "Distribution of proportion of zero nonhousehold contacts per Brussels participant",
+    x = "Proportion of waves with 0 nonhousehold contacts",
+    y = "Number of participants"
+  ) +
+  theme_minimal()
+
+high_zero_participants <- summary_table %>%
+  filter(prop_zero >= 0.9)
+nrow(high_zero_participants)/length(summary_table$prop_zero)
+
+nonzero_contacts <- dataBrussels %>%
+  filter(
+    part_uid %in% high_zero_participants$part_uid,
+    num_nonhouseh_cont > 0
+  )
+
+table(nonzero_contacts$num_nonhouseh_cont)
+mean(nonzero_contacts$num_nonhouseh_cont)
+median(nonzero_contacts$num_nonhouseh_cont)
+
+### Subgroup-analysis 4: by social group
+dataSoc12 <- finaldataset %>% filter(part_social_group_be == "Group 1&2")
+dataSoc34 <- finaldataset %>% filter(part_social_group_be == "Group 3&4")
+dataSoc56 <- finaldataset %>% filter(part_social_group_be == "Group 5&6")
+dataSoc78 <- finaldataset %>% filter(part_social_group_be == "Group 7&8")
+
+# Social group 1&2
+summary_table <- dataSoc12 %>%
+  group_by(part_uid, num_nonhouseh_cont) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = num_nonhouseh_cont, values_from = n, values_fill = 0) 
+
+summary_table <- summary_table %>%
+  left_join(
+    dataSoc12 %>% 
+      dplyr::select(part_uid, num_waves_participated) %>% 
+      distinct(),
+    by = "part_uid"
+  )
+
+head(summary_table)
+
+summary_table <- summary_table %>%
+  rowwise() %>%
+  summarise(part_uid = part_uid, 
+            total_reports = num_waves_participated,
+            zero_reports = `0`,
+            prop_zero = zero_reports / total_reports
+  ) %>%
+  ungroup()
+
+ggplot(summary_table, aes(x = prop_zero)) +
+  geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
+  labs(
+    title = "Distribution of proportion of zero nonhousehold contacts per participant from social group 1&2",
+    x = "Proportion of waves with 0 nonhousehold contacts",
+    y = "Number of participants"
+  ) +
+  theme_minimal()
+
+high_zero_participants <- summary_table %>%
+  filter(prop_zero >= 0.9)
+nrow(high_zero_participants)/length(summary_table$prop_zero)
+
+nonzero_contacts <- dataSoc12 %>%
+  filter(
+    part_uid %in% high_zero_participants$part_uid,
+    num_nonhouseh_cont > 0
+  )
+
+table(nonzero_contacts$num_nonhouseh_cont)
+mean(nonzero_contacts$num_nonhouseh_cont)
+median(nonzero_contacts$num_nonhouseh_cont)
+
+# Social group 3&4
+summary_table <- dataSoc34 %>%
+  group_by(part_uid, num_nonhouseh_cont) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = num_nonhouseh_cont, values_from = n, values_fill = 0) 
+
+summary_table <- summary_table %>%
+  left_join(
+    dataSoc34 %>% 
+      dplyr::select(part_uid, num_waves_participated) %>% 
+      distinct(),
+    by = "part_uid"
+  )
+
+head(summary_table)
+
+summary_table <- summary_table %>%
+  rowwise() %>%
+  summarise(part_uid = part_uid, 
+            total_reports = num_waves_participated,
+            zero_reports = `0`,
+            prop_zero = zero_reports / total_reports
+  ) %>%
+  ungroup()
+
+ggplot(summary_table, aes(x = prop_zero)) +
+  geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
+  labs(
+    title = "Distribution of proportion of zero nonhousehold contacts per participant from social group 3&4",
+    x = "Proportion of waves with 0 nonhousehold contacts",
+    y = "Number of participants"
+  ) +
+  theme_minimal()
+
+high_zero_participants <- summary_table %>%
+  filter(prop_zero >= 0.9)
+nrow(high_zero_participants)/length(summary_table$prop_zero)
+
+nonzero_contacts <- dataSoc34 %>%
+  filter(
+    part_uid %in% high_zero_participants$part_uid,
+    num_nonhouseh_cont > 0
+  )
+
+table(nonzero_contacts$num_nonhouseh_cont)
+mean(nonzero_contacts$num_nonhouseh_cont)
+median(nonzero_contacts$num_nonhouseh_cont)
+
+# Social group 5&6
+summary_table <- dataSoc56 %>%
+  group_by(part_uid, num_nonhouseh_cont) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = num_nonhouseh_cont, values_from = n, values_fill = 0) 
+
+summary_table <- summary_table %>%
+  left_join(
+    dataSoc56 %>% 
+      dplyr::select(part_uid, num_waves_participated) %>% 
+      distinct(),
+    by = "part_uid"
+  )
+
+head(summary_table)
+
+summary_table <- summary_table %>%
+  rowwise() %>%
+  summarise(part_uid = part_uid, 
+            total_reports = num_waves_participated,
+            zero_reports = `0`,
+            prop_zero = zero_reports / total_reports
+  ) %>%
+  ungroup()
+
+ggplot(summary_table, aes(x = prop_zero)) +
+  geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
+  labs(
+    title = "Distribution of proportion of zero nonhousehold contacts per participant from social group 5&6",
+    x = "Proportion of waves with 0 nonhousehold contacts",
+    y = "Number of participants"
+  ) +
+  theme_minimal()
+
+high_zero_participants <- summary_table %>%
+  filter(prop_zero >= 0.9)
+nrow(high_zero_participants)/length(summary_table$prop_zero)
+
+nonzero_contacts <- dataSoc56 %>%
+  filter(
+    part_uid %in% high_zero_participants$part_uid,
+    num_nonhouseh_cont > 0
+  )
+
+table(nonzero_contacts$num_nonhouseh_cont)
+mean(nonzero_contacts$num_nonhouseh_cont)
+median(nonzero_contacts$num_nonhouseh_cont)
+
+# Social group 7&8
+summary_table <- dataSoc78 %>%
+  group_by(part_uid, num_nonhouseh_cont) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = num_nonhouseh_cont, values_from = n, values_fill = 0) 
+
+summary_table <- summary_table %>%
+  left_join(
+    dataSoc78 %>% 
+      dplyr::select(part_uid, num_waves_participated) %>% 
+      distinct(),
+    by = "part_uid"
+  )
+
+head(summary_table)
+
+summary_table <- summary_table %>%
+  rowwise() %>%
+  summarise(part_uid = part_uid, 
+            total_reports = num_waves_participated,
+            zero_reports = `0`,
+            prop_zero = zero_reports / total_reports
+  ) %>%
+  ungroup()
+
+ggplot(summary_table, aes(x = prop_zero)) +
+  geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
+  labs(
+    title = "Distribution of proportion of zero nonhousehold contacts per participant from social group 7&8",
+    x = "Proportion of waves with 0 nonhousehold contacts",
+    y = "Number of participants"
+  ) +
+  theme_minimal()
+
+high_zero_participants <- summary_table %>%
+  filter(prop_zero >= 0.9)
+nrow(high_zero_participants)/length(summary_table$prop_zero)
+
+nonzero_contacts <- dataSoc78 %>%
+  filter(
+    part_uid %in% high_zero_participants$part_uid,
+    num_nonhouseh_cont > 0
+  )
+
+table(nonzero_contacts$num_nonhouseh_cont)
+mean(nonzero_contacts$num_nonhouseh_cont)
+median(nonzero_contacts$num_nonhouseh_cont)
+
+### Subgroup-analysis 5: by gender
+dataMale <- finaldataset %>% filter(part_gender == "M")
+dataFemale <- finaldataset %>% filter(part_gender == "F")
+
+# Male
+summary_table <- dataMale %>%
+  group_by(part_uid, num_nonhouseh_cont) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = num_nonhouseh_cont, values_from = n, values_fill = 0) 
+
+summary_table <- summary_table %>%
+  left_join(
+    dataMale %>% 
+      dplyr::select(part_uid, num_waves_participated) %>% 
+      distinct(),
+    by = "part_uid"
+  )
+
+head(summary_table)
+
+summary_table <- summary_table %>%
+  rowwise() %>%
+  summarise(part_uid = part_uid, 
+            total_reports = num_waves_participated,
+            zero_reports = `0`,
+            prop_zero = zero_reports / total_reports
+  ) %>%
+  ungroup()
+
+ggplot(summary_table, aes(x = prop_zero)) +
+  geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
+  labs(
+    title = "Distribution of proportion of zero nonhousehold contacts per male participant",
+    x = "Proportion of waves with 0 nonhousehold contacts",
+    y = "Number of participants"
+  ) +
+  theme_minimal()
+
+high_zero_participants <- summary_table %>%
+  filter(prop_zero >= 0.9)
+nrow(high_zero_participants)/length(summary_table$prop_zero)
+
+nonzero_contacts <- dataMale %>%
+  filter(
+    part_uid %in% high_zero_participants$part_uid,
+    num_nonhouseh_cont > 0
+  )
+
+table(nonzero_contacts$num_nonhouseh_cont)
+mean(nonzero_contacts$num_nonhouseh_cont)
+median(nonzero_contacts$num_nonhouseh_cont)
+
+# Female
+summary_table <- dataFemale %>%
+  group_by(part_uid, num_nonhouseh_cont) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = num_nonhouseh_cont, values_from = n, values_fill = 0) 
+
+summary_table <- summary_table %>%
+  left_join(
+    dataFemale %>% 
+      dplyr::select(part_uid, num_waves_participated) %>% 
+      distinct(),
+    by = "part_uid"
+  )
+
+head(summary_table)
+
+summary_table <- summary_table %>%
+  rowwise() %>%
+  summarise(part_uid = part_uid, 
+            total_reports = num_waves_participated,
+            zero_reports = `0`,
+            prop_zero = zero_reports / total_reports
+  ) %>%
+  ungroup()
+
+ggplot(summary_table, aes(x = prop_zero)) +
+  geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
+  labs(
+    title = "Distribution of proportion of zero nonhousehold contacts per female participant",
+    x = "Proportion of waves with 0 nonhousehold contacts",
+    y = "Number of participants"
+  ) +
+  theme_minimal()
+
+high_zero_participants <- summary_table %>%
+  filter(prop_zero >= 0.9)
+nrow(high_zero_participants)/length(summary_table$prop_zero)
+
+nonzero_contacts <- dataFemale %>%
+  filter(
+    part_uid %in% high_zero_participants$part_uid,
+    num_nonhouseh_cont > 0
+  )
+
+table(nonzero_contacts$num_nonhouseh_cont)
+mean(nonzero_contacts$num_nonhouseh_cont)
+median(nonzero_contacts$num_nonhouseh_cont)
+
+### Subgroup-analysis 6: by household size
+datahhsize1 <- finaldataset %>% filter(hhsize_cat == "1")
+datahhsize2 <- finaldataset %>% filter(hhsize_cat == "2")
+datahhsize3 <- finaldataset %>% filter(hhsize_cat == "3")
+datahhsize4 <- finaldataset %>% filter(hhsize_cat == "4+")
+
+# Household size 1
+summary_table <- datahhsize1 %>%
+  group_by(part_uid, num_nonhouseh_cont) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = num_nonhouseh_cont, values_from = n, values_fill = 0) 
+
+summary_table <- summary_table %>%
+  left_join(
+    datahhsize1 %>% 
+      dplyr::select(part_uid, num_waves_participated) %>% 
+      distinct(),
+    by = "part_uid"
+  )
+
+head(summary_table)
+
+summary_table <- summary_table %>%
+  rowwise() %>%
+  summarise(part_uid = part_uid, 
+            total_reports = num_waves_participated,
+            zero_reports = `0`,
+            prop_zero = zero_reports / total_reports
+  ) %>%
+  ungroup()
+
+ggplot(summary_table, aes(x = prop_zero)) +
+  geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
+  labs(
+    title = "Distribution of proportion of zero nonhousehold contacts per participant in hhsize 1",
+    x = "Proportion of waves with 0 nonhousehold contacts",
+    y = "Number of participants"
+  ) +
+  theme_minimal()
+
+high_zero_participants <- summary_table %>%
+  filter(prop_zero >= 0.9)
+nrow(high_zero_participants)/length(summary_table$prop_zero)
+
+nonzero_contacts <- datahhsize1 %>%
+  filter(
+    part_uid %in% high_zero_participants$part_uid,
+    num_nonhouseh_cont > 0
+  )
+
+table(nonzero_contacts$num_nonhouseh_cont)
+mean(nonzero_contacts$num_nonhouseh_cont)
+median(nonzero_contacts$num_nonhouseh_cont)
+
+# Household size 2
+summary_table <- datahhsize2 %>%
+  group_by(part_uid, num_nonhouseh_cont) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = num_nonhouseh_cont, values_from = n, values_fill = 0) 
+
+summary_table <- summary_table %>%
+  left_join(
+    datahhsize2 %>% 
+      dplyr::select(part_uid, num_waves_participated) %>% 
+      distinct(),
+    by = "part_uid"
+  )
+
+head(summary_table)
+
+summary_table <- summary_table %>%
+  rowwise() %>%
+  summarise(part_uid = part_uid, 
+            total_reports = num_waves_participated,
+            zero_reports = `0`,
+            prop_zero = zero_reports / total_reports
+  ) %>%
+  ungroup()
+
+ggplot(summary_table, aes(x = prop_zero)) +
+  geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
+  labs(
+    title = "Distribution of proportion of zero nonhousehold contacts per participant in hhsize 2",
+    x = "Proportion of waves with 0 nonhousehold contacts",
+    y = "Number of participants"
+  ) +
+  theme_minimal()
+
+high_zero_participants <- summary_table %>%
+  filter(prop_zero >= 0.9)
+nrow(high_zero_participants)/length(summary_table$prop_zero)
+
+nonzero_contacts <- datahhsize2 %>%
+  filter(
+    part_uid %in% high_zero_participants$part_uid,
+    num_nonhouseh_cont > 0
+  )
+
+table(nonzero_contacts$num_nonhouseh_cont)
+mean(nonzero_contacts$num_nonhouseh_cont)
+median(nonzero_contacts$num_nonhouseh_cont)
+
+# Household size 3
+summary_table <- datahhsize3 %>%
+  group_by(part_uid, num_nonhouseh_cont) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = num_nonhouseh_cont, values_from = n, values_fill = 0) 
+
+summary_table <- summary_table %>%
+  left_join(
+    datahhsize3 %>% 
+      dplyr::select(part_uid, num_waves_participated) %>% 
+      distinct(),
+    by = "part_uid"
+  )
+
+head(summary_table)
+
+summary_table <- summary_table %>%
+  rowwise() %>%
+  summarise(part_uid = part_uid, 
+            total_reports = num_waves_participated,
+            zero_reports = `0`,
+            prop_zero = zero_reports / total_reports
+  ) %>%
+  ungroup()
+
+ggplot(summary_table, aes(x = prop_zero)) +
+  geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
+  labs(
+    title = "Distribution of proportion of zero nonhousehold contacts per participant in hhsize 3",
+    x = "Proportion of waves with 0 nonhousehold contacts",
+    y = "Number of participants"
+  ) +
+  theme_minimal()
+
+high_zero_participants <- summary_table %>%
+  filter(prop_zero >= 0.9)
+nrow(high_zero_participants)/length(summary_table$prop_zero)
+
+nonzero_contacts <- datahhsize3 %>%
+  filter(
+    part_uid %in% high_zero_participants$part_uid,
+    num_nonhouseh_cont > 0
+  )
+
+table(nonzero_contacts$num_nonhouseh_cont)
+mean(nonzero_contacts$num_nonhouseh_cont)
+median(nonzero_contacts$num_nonhouseh_cont)
+
+# Household size 4+
+summary_table <- datahhsize4 %>%
+  group_by(part_uid, num_nonhouseh_cont) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = num_nonhouseh_cont, values_from = n, values_fill = 0) 
+
+summary_table <- summary_table %>%
+  left_join(
+    datahhsize4 %>% 
+      dplyr::select(part_uid, num_waves_participated) %>% 
+      distinct(),
+    by = "part_uid"
+  )
+
+head(summary_table)
+
+summary_table <- summary_table %>%
+  rowwise() %>%
+  summarise(part_uid = part_uid, 
+            total_reports = num_waves_participated,
+            zero_reports = `0`,
+            prop_zero = zero_reports / total_reports
+  ) %>%
+  ungroup()
+
+ggplot(summary_table, aes(x = prop_zero)) +
+  geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
+  labs(
+    title = "Distribution of proportion of zero nonhousehold contacts per participant in hhsize 4+",
+    x = "Proportion of waves with 0 nonhousehold contacts",
+    y = "Number of participants"
+  ) +
+  theme_minimal()
+
+high_zero_participants <- summary_table %>%
+  filter(prop_zero >= 0.9)
+nrow(high_zero_participants)/length(summary_table$prop_zero)
+
+nonzero_contacts <- datahhsize4 %>%
+  filter(
+    part_uid %in% high_zero_participants$part_uid,
+    num_nonhouseh_cont > 0
+  )
+
+table(nonzero_contacts$num_nonhouseh_cont)
+mean(nonzero_contacts$num_nonhouseh_cont)
+median(nonzero_contacts$num_nonhouseh_cont)
+
+### Subgroup-analysis 7: by education main earner
+dataloweducation <- finaldataset %>% filter(educationmainearner == "Low")
+datamediumeducation <- finaldataset %>% filter(educationmainearner == "Medium")
+datahigheducation <- finaldataset %>% filter(educationmainearner == "High")
+
+# Low education
+summary_table <- dataloweducation %>%
+  group_by(part_uid, num_nonhouseh_cont) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = num_nonhouseh_cont, values_from = n, values_fill = 0) 
+
+summary_table <- summary_table %>%
+  left_join(
+    dataloweducation %>% 
+      dplyr::select(part_uid, num_waves_participated) %>% 
+      distinct(),
+    by = "part_uid"
+  )
+
+head(summary_table)
+
+summary_table <- summary_table %>%
+  rowwise() %>%
+  summarise(part_uid = part_uid, 
+            total_reports = num_waves_participated,
+            zero_reports = `0`,
+            prop_zero = zero_reports / total_reports
+  ) %>%
+  ungroup()
+
+ggplot(summary_table, aes(x = prop_zero)) +
+  geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
+  labs(
+    title = "Distribution of proportion of zero nonhousehold contacts per participant with low education",
+    x = "Proportion of waves with 0 nonhousehold contacts",
+    y = "Number of participants"
+  ) +
+  theme_minimal()
+
+high_zero_participants <- summary_table %>%
+  filter(prop_zero >= 0.9)
+nrow(high_zero_participants)/length(summary_table$prop_zero)
+
+nonzero_contacts <- dataloweducation %>%
+  filter(
+    part_uid %in% high_zero_participants$part_uid,
+    num_nonhouseh_cont > 0
+  )
+
+table(nonzero_contacts$num_nonhouseh_cont)
+mean(nonzero_contacts$num_nonhouseh_cont)
+median(nonzero_contacts$num_nonhouseh_cont)
+
+# Medium education
+summary_table <- datamediumeducation %>%
+  group_by(part_uid, num_nonhouseh_cont) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = num_nonhouseh_cont, values_from = n, values_fill = 0) 
+
+summary_table <- summary_table %>%
+  left_join(
+    datamediumeducation %>% 
+      dplyr::select(part_uid, num_waves_participated) %>% 
+      distinct(),
+    by = "part_uid"
+  )
+
+head(summary_table)
+
+summary_table <- summary_table %>%
+  rowwise() %>%
+  summarise(part_uid = part_uid, 
+            total_reports = num_waves_participated,
+            zero_reports = `0`,
+            prop_zero = zero_reports / total_reports
+  ) %>%
+  ungroup()
+
+ggplot(summary_table, aes(x = prop_zero)) +
+  geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
+  labs(
+    title = "Distribution of proportion of zero nonhousehold contacts per participant with medium education",
+    x = "Proportion of waves with 0 nonhousehold contacts",
+    y = "Number of participants"
+  ) +
+  theme_minimal()
+
+high_zero_participants <- summary_table %>%
+  filter(prop_zero >= 0.9)
+nrow(high_zero_participants)/length(summary_table$prop_zero)
+
+nonzero_contacts <- datamediumeducation %>%
+  filter(
+    part_uid %in% high_zero_participants$part_uid,
+    num_nonhouseh_cont > 0
+  )
+
+table(nonzero_contacts$num_nonhouseh_cont)
+mean(nonzero_contacts$num_nonhouseh_cont)
+median(nonzero_contacts$num_nonhouseh_cont)
+
+# High education
+summary_table <- datahigheducation %>%
+  group_by(part_uid, num_nonhouseh_cont) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = num_nonhouseh_cont, values_from = n, values_fill = 0) 
+
+summary_table <- summary_table %>%
+  left_join(
+    datahigheducation %>% 
+      dplyr::select(part_uid, num_waves_participated) %>% 
+      distinct(),
+    by = "part_uid"
+  )
+
+head(summary_table)
+
+summary_table <- summary_table %>%
+  rowwise() %>%
+  summarise(part_uid = part_uid, 
+            total_reports = num_waves_participated,
+            zero_reports = `0`,
+            prop_zero = zero_reports / total_reports
+  ) %>%
+  ungroup()
+
+ggplot(summary_table, aes(x = prop_zero)) +
+  geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
+  labs(
+    title = "Distribution of proportion of zero nonhousehold contacts per participant with high education",
+    x = "Proportion of waves with 0 nonhousehold contacts",
+    y = "Number of participants"
+  ) +
+  theme_minimal()
+
+high_zero_participants <- summary_table %>%
+  filter(prop_zero >= 0.9)
+nrow(high_zero_participants)/length(summary_table$prop_zero)
+
+nonzero_contacts <- datahigheducation %>%
+  filter(
+    part_uid %in% high_zero_participants$part_uid,
+    num_nonhouseh_cont > 0
+  )
+
+table(nonzero_contacts$num_nonhouseh_cont)
+mean(nonzero_contacts$num_nonhouseh_cont)
+median(nonzero_contacts$num_nonhouseh_cont)
+
+
+
+## Compute % of nonhousehold contacts per wave
+zero_contact_per_wave <- finaldataset %>%
+  group_by(wave) %>%
+  summarise(
+    n_wave = n(),
+    n_zero = sum(num_nonhouseh_cont == 0),
+    perc_zero = n_zero / n_wave,
+    perc_nonzero = 1 - perc_zero
+  )
+
+contact_perc_wave <- finaldataset %>%
+  group_by(wave) %>%
+  summarise(
+    n_wave = n(),
+    n_zero = sum(num_nonhouseh_cont == 0),
+    n_nonzero = sum(num_nonhouseh_cont > 0),
+    perc_zero = n_zero / n_wave,
+    perc_nonzero = n_nonzero / n_wave
+  ) %>%
+  dplyr::select(wave, perc_zero, perc_nonzero) %>%
+  pivot_longer(
+    cols = starts_with("perc_"),
+    names_to = "contact_type",
+    values_to = "percentage"
+  ) %>%
+  mutate(
+    contact_type = recode(contact_type,
+                          "perc_zero" = "0 contacts",
+                          "perc_nonzero" = ">0 contacts")
+  )
+
+# Create stacked barplot
+ggplot(contact_perc_wave, aes(x = wave, y = percentage, fill = contact_type)) +
+  geom_bar(stat = "identity", position = "fill") +
+  scale_y_continuous(labels = scales::percent_format(scale = 100)) +
+  labs(x = "Wave", y = "% of participants", fill = "Number of contacts") +
+  theme_minimal()
 
