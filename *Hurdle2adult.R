@@ -13,19 +13,444 @@ hurdle2_adult1 <- glmer(
 #AIC = 85808.01, -2Loglik = 85766.01, 20 param
 summary(hurdle2_adult1)
 
+hurdle2_adult1wavecount <- glmer(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecount + 
+    (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  family = poisson(link = "log"),
+  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+#AIC = 84768.03, -2Loglik = 84712.03, 27 param
+
+hurdle2_adult1wavecountshort <- glmer(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  family = poisson(link = "log"),
+  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+#AIC = 85321.85, -2Loglik = 85275.85, 22 param
+
 ## Is there overdispersion?
-dispersion_glmer(hurdle2_adult1)
+library("blmeco") 
+dispersion_glmer(hurdle2_adult1wavecount)
 #Yes (2.27), so consider negative binomial distribution
 
 #Move to negative binomial distribution
-hurdle2_adultnb1 <- glmer.nb(
+system.time({hurdle2_adultnb1 <- glmer.nb(
   num_contacts ~ area_3_name + holiday + wd + employstatus +
     educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
     part_face_mask + part_symp_none + part_gender + part_social_group_be + 
     (1 | part_uid),
   data = logisticdataset_noage_adultnonhh,
-  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5)))
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))})
 #AIC = 50259.91, -2Loglik = 50215.91, 20 param
+
+system.time({hurdle2_adultnb1wavecount <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecount +
+    (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))})
+#AIC = 50138.76, -2Loglik = 50080.76, 27 param
+
+system.time({hurdle2_adultnb1wavecountshort <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))})
+#AIC = 50165.92, -2Loglik = 50117.92, 22 param
+
+hurdle2_adult2.1 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_social_group_be:part_vacc + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50156.06, -2Loglik = 50102.06, 30 param
+
+hurdle2_adult2.2 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_social_group_be:employstatus + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50166.55, -2Loglik = 50106.55, 33 param
+
+hurdle2_adult2.3 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50133.79, -2Loglik = 50081.79, 29 param --> BEST IMPROVEMENT
+
+hurdle2_adult2.4 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:part_elevated_risk + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50166.79, -2Loglik = 50116.79, 28 param
+
+hurdle2_adult2.5 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:part_face_mask + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50143.16, -2Loglik = 50093.16, 28 param
+
+hurdle2_adult2.6 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:part_symp_none + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50162.61, -2Loglik = 50112.61, 28 param
+
+hurdle2_adult2.7 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:area_3_name + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50166.73, -2Loglik = 50114.73, 29 param
+
+hurdle2_adult2.8 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:hhsize_cat + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50163.64, -2Loglik = 50109.64, 30 param
+
+hurdle2_adult2.9 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_elevated_risk:part_face_mask + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50167.73, -2Loglik = 50117.73, 28 param
+
+hurdle2_adult2.10 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_face_mask:part_symp_none + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50167.56, -2Loglik = 50117.56, 28 param
+
+hurdle2_adult2.11 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_face_mask:area_3_name + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50141.39, -2Loglik = 50089.39, 29 param
+
+hurdle2_adult2.12 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    area_3_name:holiday + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50157.35, -2Loglik = 50105.35, 29 param
+
+hurdle2_adult2.13 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    area_3_name:hhsize_cat + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50170.57, -2Loglik = 50110.57, 33 param
+
+hurdle2_adult2.14 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    holiday:wd + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50161.66, -2Loglik = 50111.66, 28 param
+
+pchisq(50117.92-50081.79, df=length(fixef(hurdle2_adult2.3))-length(fixef(hurdle2_adultnb1wavecountshort)), lower.tail=FALSE)
+
+hurdle2_adult3.1 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + part_social_group_be:part_vacc + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50125.91, -2Loglik = 50067.91, 32 param
+
+hurdle2_adult3.2 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + part_social_group_be:employstatus + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50134.29, -2Loglik = 50070.29, 35 param
+
+hurdle2_adult3.3 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + part_vacc:part_elevated_risk + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50134.93, -2Loglik = 50080.93, 30 param
+
+hurdle2_adult3.4 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + part_vacc:part_face_mask + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50112.10, -2Loglik = 50058.10, 30 param
+
+hurdle2_adult3.5 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + part_vacc:part_symp_none + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50131.78, -2Loglik = 50077.78, 30 param
+
+hurdle2_adult3.6 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + part_vacc:area_3_name + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50135.46, -2Loglik = 50079.46, 32 param
+
+hurdle2_adult3.7 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + part_vacc:hhsize_cat + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50132.08, -2Loglik = 50074.08, 33 param
+
+hurdle2_adult3.8 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + part_elevated_risk:part_face_mask + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50135.67, -2Loglik = 50081.67, 30 param
+
+hurdle2_adult3.9 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + part_face_mask:part_symp_none + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50135.50, -2Loglik = 50081.50, 30 param
+
+hurdle2_adult3.10 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + part_face_mask:area_3_name + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50109.70, -2Loglik = 50053.70, 31 param --> BEST IMPROVEMENT
+
+hurdle2_adult3.11 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + area_3_name:holiday + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50124.89, -2Loglik = 50068.89, 31 param
+
+hurdle2_adult3.12 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + area_3_name:hhsize_cat + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50138.89, -2Loglik = 50074.89, 35 param
+
+hurdle2_adult3.13 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + holiday:wd + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50130.05, -2Loglik = 50076.05, 30 param
+
+pchisq(50081.79-50053.70, df=length(fixef(hurdle2_adult3.10))-length(fixef(hurdle2_adult2.3)), lower.tail=FALSE)
+
+hurdle2_adult4.1 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + part_face_mask:area_3_name + part_social_group_be:part_vacc + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50109.70, -2Loglik = 50053.70, 34 param
+
+hurdle2_adult4.2 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + part_face_mask:area_3_name + part_social_group_be:employstatus + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50109.70, -2Loglik = 50053.70, 37 param
+
+hurdle2_adult4.3 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + part_face_mask:area_3_name + part_vacc:part_elevated_risk + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50109.70, -2Loglik = 50053.70, 32 param
+
+hurdle2_adult4.4 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + part_face_mask:area_3_name + part_vacc:part_face_mask + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50109.70, -2Loglik = 50053.70, 32 param
+
+hurdle2_adult4.5 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + part_face_mask:area_3_name + part_vacc:part_symp_none + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50109.70, -2Loglik = 50053.70, 32 param
+
+hurdle2_adult4.6 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + part_face_mask:area_3_name + part_vacc:area_3_name + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50109.70, -2Loglik = 50053.70, 33 param
+
+hurdle2_adult4.7 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + part_face_mask:area_3_name + part_vacc:hhsize_cat + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50109.70, -2Loglik = 50053.70, 34 param
+
+hurdle2_adult4.8 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + part_face_mask:area_3_name + part_elevated_risk:part_face_mask + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50109.70, -2Loglik = 50053.70, 32 param
+
+hurdle2_adult4.9 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + part_face_mask:area_3_name + part_face_mask:part_symp_none + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50109.70, -2Loglik = 50053.70, 32 param
+
+hurdle2_adult4.10 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + part_face_mask:area_3_name + area_3_name:holiday + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50109.70, -2Loglik = 50053.70, 33 param
+
+hurdle2_adult4.11 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + part_face_mask:area_3_name + area_3_name:hhsize_cat + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50109.70, -2Loglik = 50053.70, 37 param
+
+hurdle2_adult4.12 <- glmer.nb(
+  num_contacts ~ area_3_name + holiday + wd + employstatus +
+    educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
+    part_face_mask + part_symp_none + part_gender + part_social_group_be + wavecountshort +
+    part_vacc:educationmainearner + part_face_mask:area_3_name + holiday:wd + (1 | part_uid),
+  data = logisticdataset_noage_adultnonhh,
+  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
+#AIC = 50109.70, -2Loglik = 50053.70, 32 param
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 hurdle2_adult2.1 <- glmer.nb(
   num_contacts ~ area_3_name + holiday + wd + employstatus +
@@ -493,6 +918,10 @@ hurdle2_adult6.7 <- glmer.nb(
   data = logisticdataset_noage_adultnonhh,
   control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5)))
 #AIC = 50204.21, -2Loglik = 50142.21, 29 param
+
+pchisq(50145.25-50137.63, df=length(fixef(hurdle2_adult6.3))-length(fixef(hurdle2_adult5.2)), lower.tail=FALSE)
+
+## NO SIGNIFICANT IMPROVEMENTS ANYMORE
 
 pchisq(50145.25-50137.63, df=length(fixef(hurdle2_adult6.3))-length(fixef(hurdle2_adult5.2)), lower.tail=FALSE)
 
