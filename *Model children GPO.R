@@ -200,7 +200,7 @@ modelchildrensigma1 <- gamlss(num_nonhouseh_cont ~ part_face_mask+
                                      family = GPO, 
                                      data = na.omit(finaldataset_noagegender_children),
                                      control = gamlss.control(n.cyc = 2000)) 
-#93 iterations, AIC = 26871.4
+#40 iterations, AIC = 26871.4
 
 modelchildrensigma2 <- gamlss(num_nonhouseh_cont ~ part_face_mask+
                                 area_3_name+holiday+wd+hhsize_cat+wavecount+holiday:area_3_name+
@@ -290,3 +290,61 @@ modelchildrensigmanowavecount <- gamlss(num_nonhouseh_cont ~ part_face_mask+
 
 ### Final model: modelchildrensigma1
 finalmodelchildrenGPO <- modelchildrensigma1
+
+## GOF ##
+
+# 1) Plot
+# mean =~ 0, variance =~ 1, skewness =~ 0, kurtosis =~ 3 
+# --> residuals are approximately normally distributed as they should be for an adequate model
+plot(finalmodelchildrenGPO)
+# mean = -0.0033, variance = 1.0647, skewness = -0.1327, kurtosis = 2.8683
+
+# 2) rqres.plot has to be used in addition to the function plot due to discrete distribution family
+rqres.plot(finalmodelchildrenGPO)
+rqres.plot(finalmodelchildrenGPO,2,all=FALSE)
+### What is this??
+
+df <- data.frame(
+  Covariate = c("Face mask No", "Face mask Yes", 
+                "Brussels Hoofdstede", "Vlaams Gewest", "Waals Gewest", "Holiday No", "Holiday Yes", 
+                "Weekday", "Weekend","hh size 2", "hh size 3", "hh size 4+", 
+                "1 wave", "2 waves", "3 waves", "4 waves", "5 waves", "6 waves", "7 waves", "8+ waves",
+                "Brussels Hoofdstede : Holiday No","Vlaams Gewest : Holiday Yes", "Waals Gewest : Holiday Yes"),
+  Estimate = c(0, 0.64448,
+               0, 1.54759, 0.31861, 0, 0.21636,
+               0, -0.11582, 0, -0.12145, -0.22847,
+               0, 0.26429, -0.42429, -0.52857, -0.32656, -0.98693, -0.69578, -1.12101,
+               0, -0.90490, -0.85924),
+  SE = c(0, 0.04345,
+         0, 0.09939, 0.10351, 0, 0.19486, 
+         0, 0.05913, 0, 0.07236, 0.06835,
+         0, 0.08712, 0.09385, 0.08947, 0.12179, 0.10672, 0.12746, 0.05831,
+         0, 0.20413, 0.21731)
+)
+
+# Compute the relative number of contacts and confidence intervals
+df <- df %>%
+  mutate(
+    RelativeContacts = exp(Estimate), 
+    LowerCI = exp(Estimate - 1.96 * SE), 
+    UpperCI = exp(Estimate + 1.96 * SE)
+  )
+
+covariate_order <- rev(c("Face mask No", "Face mask Yes", 
+                         "Brussels Hoofdstede", "Vlaams Gewest", "Waals Gewest", "Holiday No", "Holiday Yes", 
+                         "Weekday", "Weekend","hh size 2", "hh size 3", "hh size 4+", 
+                         "1 wave", "2 waves", "3 waves", "4 waves", "5 waves", "6 waves", "7 waves", "8+ waves",
+                         "Brussels Hoofdstede : Holiday No","Vlaams Gewest : Holiday Yes", "Waals Gewest : Holiday Yes"))
+
+df$Covariate <- factor(df$Covariate, levels = covariate_order)
+
+library(ggplot2)
+# Plot using ggplot2
+ggplot(df, aes(x = RelativeContacts, y = reorder(Covariate, RelativeContacts))) +
+  geom_point(size = 2, color = "red") + 
+  geom_errorbarh(aes(xmin = LowerCI, xmax = UpperCI), height = 0.5, linewidth = 0.8, color = "black") + 
+  geom_vline(xintercept = 1, linetype = "dashed", color = "blue") +
+  theme_minimal() +
+  labs(x = "Relative Number of non-household contacts", y = "Covariates") +
+  theme(axis.text.y = element_text(size = 10)) +
+  scale_y_discrete(limits = covariate_order) # Ensure correct order
