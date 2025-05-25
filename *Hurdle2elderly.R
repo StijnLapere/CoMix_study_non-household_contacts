@@ -651,8 +651,52 @@ hurdle2_elderlynowavecount <- glmer.nb(
   control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
 #AIC = 18100.905, -2Loglik = 18060.905, 11 param
 
+summary(hurdle2_elderlynoholiday)
 
+df <- data.frame(
+  Covariate = c("Brussels Hoofdstede", "Vlaams Gewest", "Waals Gewest", "Weekday", "Weekend",
+                "Vacc No", "Vacc Yes", "Elevated risk No", "Elevated risk Yes", "Symptoms No", "Symptoms Yes", "Face mask No", "Face mask Yes",
+                "Female", "Male",
+                "1 wave", "2 waves", "3 waves", "4 waves", "5 waves", "6 waves", "7 waves", "8+ waves",
+                "Brussels Hoofdstede : Face mask No", "Vlaams Gewest : Face mask Yes", "Waals Gewest : Face mask Yes"),
+  Estimate = c(0, -0.11786, -0.16078, 0, 0.09402,
+               0, 0.37398, 0, -0.01886, 0, -0.10209, 0, -0.15608, 
+               0, 0.10750, 
+               0, 0.13766, -0.14302, 0.04346, -0.03530, -0.06019, -0.08839, -0.13990,
+               0, 0.37543, 0.17343),
+  SE = c(0, 0.17368, 0.18159, 0, 0.02956,
+         0, 0.05122, 0, 0.04740, 0, 0.04782, 0, 0.14842, 
+         0, 0.06402, 
+         0, 0.07519, 0.08230, 0.08027, 0.08397, 0.08429, 0.08480, 0.06473,
+         0, 0.15532, 0.16390)
+)
 
+# Compute the relative number of contacts and confidence intervals
+df <- df %>%
+  mutate(
+    RelativeContacts = exp(Estimate), 
+    LowerCI = exp(Estimate - 1.96 * SE), 
+    UpperCI = exp(Estimate + 1.96 * SE)
+  )
+
+covariate_order <- rev(c("Brussels Hoofdstede", "Vlaams Gewest", "Waals Gewest", "Weekday", "Weekend",
+                         "Vacc No", "Vacc Yes", "Elevated risk No", "Elevated risk Yes", "Symptoms No", "Symptoms Yes", "Face mask No", "Face mask Yes",
+                         "Female", "Male",
+                         "1 wave", "2 waves", "3 waves", "4 waves", "5 waves", "6 waves", "7 waves", "8+ waves",
+                         "Brussels Hoofdstede : Face mask No", "Vlaams Gewest : Face mask Yes", "Waals Gewest : Face mask Yes"))
+
+df$Covariate <- factor(df$Covariate, levels = covariate_order)
+
+library(ggplot2)
+# Plot using ggplot2
+ggplot(df, aes(x = RelativeContacts, y = reorder(Covariate, RelativeContacts))) +
+  geom_point(size = 2, color = "red") + 
+  geom_errorbarh(aes(xmin = LowerCI, xmax = UpperCI), height = 0.5, linewidth = 0.8, color = "black") + 
+  geom_vline(xintercept = 1, linetype = "dashed", color = "blue") +
+  theme_minimal() +
+  labs(x = "Relative Number of having non-household contacts", y = "Covariates") +
+  theme(axis.text.y = element_text(size = 10)) +
+  scale_y_discrete(limits = covariate_order) # Ensure correct order
 
 
 
@@ -895,4 +939,5 @@ resid_pearson <- residuals(hurdle2_elderly1, type = "pearson")
 # Calculate dispersion statistic
 dispersion_stat <- sum(resid_pearson^2) / df.residual(hurdle2_elderly1)
 #4.379894 --> CLEAR OVERDISPERSION
+
 
