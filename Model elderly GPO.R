@@ -11,6 +11,7 @@ modelelderly1 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+part
                         control = gamlss.control(n.cyc = 100))
 #96 iterations, AIC = 23821
 
+## Include interaction effect
 modelelderly2.1 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+part_elevated_risk+
                             part_face_mask+part_symp_none+area_3_name+holiday+wd+
                             hhsize_elderly+wavecount+part_gender+part_social_group_be:part_vacc+
@@ -77,7 +78,6 @@ modelelderly2.6 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+pa
                           control = gamlss.control(n.cyc = 1000))
 #89 iterations, AIC = 23817.1
 
-
 modelelderly2.7 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+part_elevated_risk+
                             part_face_mask+part_symp_none+area_3_name+holiday+wd+
                             hhsize_elderly+wavecount+part_gender+part_elevated_risk:part_face_mask+
@@ -88,7 +88,6 @@ modelelderly2.7 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+pa
                           data = na.omit(finaldataset_noage_Elderly),
                           control = gamlss.control(n.cyc = 1000))
 #72 iterations, AIC = 23819
-
 
 modelelderly2.8 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+part_elevated_risk+
                             part_face_mask+part_symp_none+area_3_name+holiday+wd+
@@ -111,7 +110,6 @@ modelelderly2.9 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+pa
                           data = na.omit(finaldataset_noage_Elderly),
                           control = gamlss.control(n.cyc = 1000))
 #67 iterations, AIC = 23814
-
 
 modelelderly2.10 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+part_elevated_risk+
                              part_face_mask+part_symp_none+area_3_name+holiday+wd+
@@ -148,6 +146,7 @@ modelelderly2.12 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+p
 
 pchisq(23821-23775.4, df=length(coef(modelelderly2.3))-length(coef(modelelderly1)), lower.tail=FALSE)
 
+# Can we include another interaction effect?
 modelelderly3.1 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+part_elevated_risk+
                             part_face_mask+part_symp_none+area_3_name+holiday+wd+
                             hhsize_elderly+wavecount+part_gender+part_vacc:part_face_mask+
@@ -282,7 +281,7 @@ modelelderly3.11 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+p
 
 ### NO IMPROVEMENTS ANYMORE
 
-## CAN WE REMOVE A MAIN EFFECT?
+## Can we remove a main effect?
 modelelderlynosocialgroup <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_risk+
                             part_face_mask+part_symp_none+area_3_name+holiday+wd+
                             hhsize_elderly+wavecount+part_gender+part_vacc:part_face_mask+
@@ -371,6 +370,7 @@ modelelderlynogender <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_va
                           control = gamlss.control(n.cyc = 1000))
 #78 iterations, AIC = 23822.1
 
+### Remove main effect of social group
 ## Can we remove another main effect?
 modelelderlynoelevatedrisk <- gamlss(num_nonhouseh_cont ~ part_vacc+
                                       part_face_mask+part_symp_none+area_3_name+holiday+wd+
@@ -498,7 +498,7 @@ modelelderlyadditive4 <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_ris
 #69 iterations, AIC = 23852.4
 
 ## NO SIGNIFICANT IMPROVEMENTS
-
+### Built model for sigma
 modelelderlysigma1 <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_risk+
                                       part_face_mask+part_symp_none+area_3_name+holiday+wd+
                                       hhsize_elderly+wavecount+part_gender+part_vacc:part_face_mask+
