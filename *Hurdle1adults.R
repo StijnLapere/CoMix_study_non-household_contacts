@@ -988,3 +988,56 @@ library(DHARMa)
 simulationoutput <- simulateResiduals(fittedModel = glmm_adulttotalnoemploystatus)
 plot(simulationoutput)
 testDispersion(simulationoutput)
+
+df <- data.frame(
+  Covariate = c("Brussels Hoofdstede", "Vlaams Gewest", "Waals Gewest", "Holiday No", "Holiday Yes", 
+                "Weekday", "Weekend", "Low education", "Medium education", "High education",
+                "Vacc No", "Vacc Yes", "Elevated risk No", "Elevated risk Yes", "Symptoms No", "Symptoms Yes", "Face mask No", "Face mask Yes",
+                "hh size 1", "hh size 2", "hh size 3", "hh size 4+", "Female", "Male",
+                "1 wave", "2 waves", "3 waves", "4 waves", "5 waves", "6 waves", "7 waves", "8+ waves",
+                "Vacc No : hh size 1", "Vacc Yes : hh size 2", "Vacc Yes : hh size 3", "Vacc Yes : hh size 4+",
+                "Elevated risk No : Face mask No", "Elevated risk Yes : Face mask Yes", "Vacc No : Elevated risk No", "Vacc Yes : Elevated risk Yes", "Vacc No : Face mask No", "Vacc Yes : Face mask Yes"),
+  Estimate = c(0, 0.84838, 0.20921, 0, 0.13139, 
+               0, 0.08638, -0.28140, 0, 0.35113, 
+               0, 0.30219, 0, -0.01198, 0, -0.20915, 0, 1.71873,
+               0, -0.48526, -0.45668, -0.37944, 0, -0.28911,
+               0, -0.16487, -0.32955, -0.51955, -0.50286, -0.42750, -0.54417, -0.70912,
+               0, 0.28607, 0.13037, -0.27181, 
+               0, 0.32328, 0, -0.20077, 0, -0.17285),
+  SE = c(0, 0.15921, 0.16720, 0, 0.03938,
+         0, 0.04493, 0.14003, 0, 0.10279, 
+         0, 0.11017, 0, 0.11992, 0, 0.05117, 0, 0.07515,
+         0, 0.12423, 0.15349, 0.15683, 0, 0.09443,
+         0, 0.08440, 0.09055, 0.09451, 0.09712, 0.09993, 0.10211, 0.07438,
+         0, 0.10838, 0.13215, 0.13978, 
+         0, 0.09742, 0, 0.09793, 0, 0.08603)
+)
+
+# Compute the relative number of contacts and confidence intervals
+df <- df %>%
+  mutate(
+    RelativeContacts = exp(Estimate), 
+    LowerCI = exp(Estimate - 1.96 * SE), 
+    UpperCI = exp(Estimate + 1.96 * SE)
+  )
+
+covariate_order <- rev(c("Brussels Hoofdstede", "Vlaams Gewest", "Waals Gewest", "Holiday No", "Holiday Yes", 
+                         "Weekday", "Weekend", "Low education", "Medium education", "High education",
+                         "Vacc No", "Vacc Yes", "Elevated risk No", "Elevated risk Yes", "Symptoms No", "Symptoms Yes", "Face mask No", "Face mask Yes",
+                         "hh size 1", "hh size 2", "hh size 3", "hh size 4+", "Female", "Male",
+                         "1 wave", "2 waves", "3 waves", "4 waves", "5 waves", "6 waves", "7 waves", "8+ waves",
+                         "Vacc No : hh size 1", "Vacc Yes : hh size 2", "Vacc Yes : hh size 3", "Vacc Yes : hh size 4+",
+                         "Elevated risk No : Face mask No", "Elevated risk Yes : Face mask Yes", "Vacc No : Elevated risk No", "Vacc Yes : Elevated risk Yes", "Vacc No : Face mask No", "Vacc Yes : Face mask Yes"))
+
+df$Covariate <- factor(df$Covariate, levels = covariate_order)
+
+library(ggplot2)
+# Plot using ggplot2
+ggplot(df, aes(x = RelativeContacts, y = reorder(Covariate, RelativeContacts))) +
+  geom_point(size = 2, color = "red") + 
+  geom_errorbarh(aes(xmin = LowerCI, xmax = UpperCI), height = 0.5, linewidth = 0.8, color = "black") + 
+  geom_vline(xintercept = 1, linetype = "dashed", color = "blue") +
+  theme_minimal() +
+  labs(x = "Relative Odds of having non-household contacts", y = "Covariates") +
+  theme(axis.text.y = element_text(size = 10)) +
+  scale_y_discrete(limits = covariate_order) # Ensure correct order
