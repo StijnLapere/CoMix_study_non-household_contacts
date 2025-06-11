@@ -297,12 +297,21 @@ finalmodelchildrenGPO <- modelchildrensigma1
 # mean =~ 0, variance =~ 1, skewness =~ 0, kurtosis =~ 3 
 # --> residuals are approximately normally distributed as they should be for an adequate model
 plot(finalmodelchildrenGPO)
-# mean = -0.0033, variance = 1.0647, skewness = -0.1327, kurtosis = 2.8683
 
 # 2) rqres.plot has to be used in addition to the function plot due to discrete distribution family
-rqres.plot(finalmodelchildrenGPO)
-rqres.plot(finalmodelchildrenGPO,2,all=FALSE)
-### What is this??
+rqres.plot(finalmodelchildrenGPO,6,type="QQ")
+saveres <- rqres.plot(finalmodelchildrenGPO,40,type="QQ",plot.type="all",all=FALSE)
+
+install.packages("matrixStats")
+library(matrixStats)
+
+row_medians <- rowMedians(saveres)
+
+install.packages("e1071")
+library(e1071)
+
+c(mean(row_medians),var(row_medians),skewness(row_medians),kurtosis(row_medians)+3)
+# mean = -0.0010, variance = 1.0467, skewness = -0.0885, kurtosis = 2.8152
 
 df <- data.frame(
   Covariate = c("Face mask No", "Face mask Yes", 
@@ -310,16 +319,16 @@ df <- data.frame(
                 "Weekday", "Weekend","hh size 2", "hh size 3", "hh size 4+", 
                 "1 wave", "2 waves", "3 waves", "4 waves", "5 waves", "6 waves", "7 waves", "8+ waves",
                 "Brussels Hoofdstede : Holiday No","Vlaams Gewest : Holiday Yes", "Waals Gewest : Holiday Yes"),
-  Estimate = c(0, 0.64448,
-               0, 1.54759, 0.31861, 0, 0.21636,
-               0, -0.11582, 0, -0.12145, -0.22847,
-               0, 0.26429, -0.42429, -0.52857, -0.32656, -0.98693, -0.69578, -1.12101,
-               0, -0.90490, -0.85924),
-  SE = c(0, 0.04345,
-         0, 0.09939, 0.10351, 0, 0.19486, 
-         0, 0.05913, 0, 0.07236, 0.06835,
-         0, 0.08712, 0.09385, 0.08947, 0.12179, 0.10672, 0.12746, 0.05831,
-         0, 0.20413, 0.21731)
+  Estimate = c(0, 0.64410,
+               0, 1.54548, 0.31855, 0, 0.21760,
+               0, -0.11558, 0, -0.12601, -0.23211,
+               0, 0.26659, -0.42193, -0.52649, -0.32428, -0.98464, -0.69363, -1.11953,
+               0, -0.90540, -0.85949),
+  SE = c(0, 0.04344,
+         0, 0.09938, 0.10350, 0, 0.19487, 
+         0, 0.05913, 0, 0.07236, 0.06834,
+         0, 0.08713, 0.09385, 0.08946, 0.12180, 0.10673, 0.12748, 0.05828,
+         0, 0.20415, 0.21733)
 )
 
 # Compute the relative number of contacts and confidence intervals
@@ -348,3 +357,4 @@ ggplot(df, aes(x = RelativeContacts, y = reorder(Covariate, RelativeContacts))) 
   labs(x = "Relative Number of non-household contacts", y = "Covariates") +
   theme(axis.text.y = element_text(size = 10)) +
   scale_y_discrete(limits = covariate_order) # Ensure correct order
+
