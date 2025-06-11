@@ -8,42 +8,40 @@ clusteringdataset <- nonhouseholdcontacts %>%
   summarise(n = n(), .groups = "drop") %>%
   tidyr::pivot_wider(names_from = place, values_from = n, values_fill = 0)
 
-# Verwijder part_id voor clustering
+# Remove part_id for clustering
 clust_input <- clusteringdataset %>% select(-part_uid)
 
-# Standaardiseren
+# Standardise
 clust_scaled <- scale(clust_input)
 
-# Afstandsmatrix en clustering
+# Distance matrix and hierarchical clustering
 dist_matrix <- dist(clust_scaled)
 hc <- hclust(dist_matrix, method = "ward.D2")
 
 # Plot dendrogram
-plot(hc, main = "Dendrogram contactprofielen", xlab = "", sub = "")
+plot(hc, main = "Dendrogram contactprofiles", xlab = "", sub = "")
 
-# Kiezen van aantal clusters (bijv. 3)
+# Choose number of clusters
 k <- 6
 clusters <- cutree(hc, k = k)
 
-# Toevoegen aan data
 clusteringdataset$cluster <- as.factor(clusters)
 
 clusteringdataset %>%
   group_by(cluster) %>%
-  summarise(across(where(is.numeric), mean))  # gemiddeld contactpatroon per cluster
+  summarise(across(where(is.numeric), mean)) 
 
-# Stap 1: Zorg dat clusteringinformatie in nonhouseholdcontacts komt
 nonhouseholdcontacts_clustered <- nonhouseholdcontacts %>%
   left_join(clusteringdataset %>% select(part_uid, cluster), by = "part_uid")
 
-# Stap 2: Bereken het percentage per adult_cat per cluster
+# Stap 2: Compute percentage per adult_cat and cluster 
 proporties_per_cluster <- nonhouseholdcontacts_clustered %>%
   group_by(cluster, adult_cat) %>%
   summarise(n = n(), .groups = "drop") %>%
   group_by(cluster) %>%
   mutate(procent = n / sum(n) * 100)
 
-# Eventueel: Wide format zodat elke cluster één rij is
+# Wide format such that every cluster is represented in one row
 proporties_wide <- proporties_per_cluster %>%
   select(cluster, adult_cat, procent) %>%
   tidyr::pivot_wider(names_from = adult_cat, values_from = procent, values_fill = 0)
@@ -57,36 +55,30 @@ proporties_en_aantallen <- proporties_wide %>%
 library(factoextra)
 fviz_cluster(list(data = clust_scaled, cluster = clusters))
 
-
 ## TABLE 2: Ward D2 with mean contacts per person accounted for number of waves ##
 clusteringdataset <- nonhouseholdcontacts %>%
   filter(!is.na(place)) %>%
   group_by(part_uid, wave, place) %>%
-  summarise(n_contacts = n(), .groups = "drop") %>%  # aantal contacten per persoon per wave per locatie
+  summarise(n_contacts = n(), .groups = "drop") %>%  # Number of contacts per person per wave per location 
   group_by(part_uid, place) %>%
-  summarise(mean_contacts = mean(n_contacts), .groups = "drop") %>%  # gemiddeld per locatie over alle waves
+  summarise(mean_contacts = mean(n_contacts), .groups = "drop") %>%  # Average per location across all waves
   pivot_wider(names_from = place, values_from = mean_contacts, values_fill = 0)
 
-# Verwijder part_id voor clustering
 clust_input <- clusteringdataset %>% select(-part_uid)
 
-# Standaardiseren
 clust_scaled <- scale(clust_input)
 
-# Afstandsmatrix en clustering
 dist_matrix <- dist(clust_scaled)
 hc <- hclust(dist_matrix, method = "ward.D2")
 
-# Plot dendrogram
-plot(hc, main = "Dendrogram contactprofielen", xlab = "", sub = "")
+plot(hc, main = "Dendrogram contactprofiles", xlab = "", sub = "")
 
 #Elbow plot
 fviz_nbclust(clusteringdataset, FUN = hcut, method = "wss")
 
 library(cluster)
+# Average silhouette plot
 sil_scores <- c()
-
-# Test voor aantal clusters van 2 tot 10
 for (k in 2:10) {
   clusters_k <- cutree(hc, k = k)
   sil <- silhouette(clusters_k, dist = dist_matrix)
@@ -94,34 +86,29 @@ for (k in 2:10) {
 }
 
 plot(2:10, sil_scores[2:10], type = "b", pch = 19,
-     xlab = "Aantal clusters", ylab = "Gemiddelde silhouette width",
-     main = "Silhouette-analyse")
+     xlab = "Number of clusters", ylab = "Average silhouette width",
+     main = "Silhouette-analysis")
 
 fviz_nbclust(clusteringdataset, FUN = hcut, method = "silhouette")
 
-# Kiezen van aantal clusters (bijv. 3)
 k <- 2
 clusters <- cutree(hc, k = k)
 
-# Toevoegen aan data
 clusteringdataset$cluster <- as.factor(clusters)
 
 contactspercluser <- clusteringdataset %>%
   group_by(cluster) %>%
-  summarise(across(where(is.numeric), mean))  # gemiddeld contactpatroon per cluster
+  summarise(across(where(is.numeric), mean)) 
 
-# Stap 1: Zorg dat clusteringinformatie in nonhouseholdcontacts komt
 nonhouseholdcontacts_clustered <- nonhouseholdcontacts %>%
   left_join(clusteringdataset %>% select(part_uid, cluster), by = "part_uid")
 
-# Stap 2: Bereken het percentage per adult_cat per cluster
 proporties_per_cluster <- nonhouseholdcontacts_clustered %>%
   group_by(cluster, adult_cat) %>%
   summarise(n = n(), .groups = "drop") %>%
   group_by(cluster) %>%
   mutate(procent = n / sum(n) * 100)
 
-# Eventueel: Wide format zodat elke cluster één rij is
 proporties_wide <- proporties_per_cluster %>%
   select(cluster, adult_cat, procent) %>%
   tidyr::pivot_wider(names_from = adult_cat, values_from = procent, values_fill = 0)
@@ -134,14 +121,13 @@ proporties_en_aantallen <- proporties_wide %>%
 
 fviz_cluster(list(data = clust_scaled, cluster = clusters))
 
-# Zet wide naar long: locatie als variabele
+# Wide to long: location as variable
 cluster_means_long <- contactspercluser %>%
   pivot_longer(cols = -cluster, names_to = "locatie", values_to = "gem_aantal")
 
 cluster_means_long$locatie <- factor(cluster_means_long$locatie,
                                      levels = c("Home", "Work", "School", "Leisure", "Transport", "Other"))
 
-# 3. Maak de lijnplot
 ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
   geom_line(color = "steelblue", size = 1.2) +
   geom_point(color = "steelblue", size = 2) +
@@ -154,33 +140,28 @@ ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = -90, vjust = 0.5, hjust = 1))
 
-
 ######## Clustering per age category ########
 #### Adults ####
 ## Ward D2 with mean contacts per person accounted for number of waves ##
 clusteringdataset <- nonhouseholdcontacts_noage_adult %>%
   filter(!is.na(place)) %>%
   group_by(part_uid, wave, place) %>%
-  summarise(n_contacts = n(), .groups = "drop") %>%  # aantal contacten per persoon per wave per locatie
+  summarise(n_contacts = n(), .groups = "drop") %>%  
   group_by(part_uid, place) %>%
-  summarise(mean_contacts = mean(n_contacts), .groups = "drop") %>%  # gemiddeld per locatie over alle waves
+  summarise(mean_contacts = mean(n_contacts), .groups = "drop") %>%  
   pivot_wider(names_from = place, values_from = mean_contacts, values_fill = 0)
 
-# Verwijder part_id voor clustering
 clust_input <- clusteringdataset %>% select(-part_uid)
 
-# Standaardiseren
 clust_scaled <- scale(clust_input)
 
-# Afstandsmatrix en clustering
 dist_matrix <- dist(clust_scaled)
 hc <- hclust(dist_matrix^2, method = "ward.D2")
 
 # Compute cophentic distance
 res.coph <- cophenetic(hc)
 
-# Correlation between cophenetic distance and
-# the original distance
+# Correlation between cophenetic distance and the original distance
 cor(dist_matrix, res.coph) #0.811
 
 res.hc2 <- hclust(dist_matrix, method = "average")
@@ -196,14 +177,13 @@ res.hc5 <- hclust(dist_matrix, method = "centroid")
 cor(dist_matrix, cophenetic(res.hc5)) #0.951
 
 # Plot dendrogram
-plot(hc, main = "Dendrogram contactprofielen", xlab = "", sub = "")
+plot(hc, main = "Dendrogram contactprofiles", xlab = "", sub = "")
 
 #Elbow plot
 fviz_nbclust(clusteringdataset, FUN = hcut, method = "wss")
 
+# Average silhouette plot
 sil_scores <- c()
-
-# Test voor aantal clusters van 2 tot 10
 for (k in 2:10) {
   clusters_k <- cutree(hc, k = k)
   sil <- silhouette(clusters_k, dist = dist_matrix)
@@ -211,8 +191,8 @@ for (k in 2:10) {
 }
 
 plot(2:10, sil_scores[2:10], type = "b", pch = 19,
-     xlab = "Aantal clusters", ylab = "Gemiddelde silhouette width",
-     main = "Silhouette-analyse")
+     xlab = "Number of clusters", ylab = "Average silhouette width",
+     main = "Silhouette-analysis")
 
 fviz_nbclust(clusteringdataset, FUN = hcut, method = "silhouette")
 # 2 clusters
@@ -221,26 +201,23 @@ fviz_nbclust(clusteringdataset, FUN = hcut, method = "silhouette")
 k <- 2
 clusters <- cutree(hc, k = k)
 
-# Toevoegen aan data
 clusteringdataset$cluster <- as.factor(clusters)
 
 contactspercluser <- clusteringdataset %>%
   group_by(cluster) %>%
-  summarise(across(where(is.numeric), mean))  # gemiddeld contactpatroon per cluster
+  summarise(across(where(is.numeric), mean))  
 
 aantal_per_cluster <- clusteringdataset %>%
   count(cluster, name = "aantal_personen")
 
 fviz_cluster(list(data = clust_scaled, cluster = clusters))
 
-# Zet wide naar long: locatie als variabele
 cluster_means_long <- contactspercluser %>%
   pivot_longer(cols = -cluster, names_to = "locatie", values_to = "gem_aantal")
 
 cluster_means_long$locatie <- factor(cluster_means_long$locatie,
                                      levels = c("Home", "Work", "School", "Leisure", "Transport", "Other"))
 
-# 3. Maak de lijnplot
 ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
   geom_line(color = "steelblue", size = 1.2) +
   geom_point(color = "steelblue", size = 2) +
@@ -253,6 +230,7 @@ ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = -90, vjust = 0.5, hjust = 1))
 
+# Only contact patterns of first (largest) cluster
 ggplot(cluster_means_long[cluster_means_long$cluster == 1, ], aes(x = locatie, y = gem_aantal, group = cluster)) +
   geom_line(color = "steelblue", size = 1.2) +
   geom_point(color = "steelblue", size = 2) +
@@ -261,10 +239,10 @@ ggplot(cluster_means_long[cluster_means_long$cluster == 1, ], aes(x = locatie, y
   ) +
   theme_minimal() +
   theme(
-    axis.text.x = element_text(size = 16, angle = -90, vjust = 0.5, hjust = 1),  # x-axis tick labels
-    axis.text.y = element_text(size = 16),                                       # y-axis tick labels
-    axis.title.x = element_text(size = 18),                                      # x-axis label
-    axis.title.y = element_text(size = 18)                                       # y-axis label
+    axis.text.x = element_text(size = 16, angle = -90, vjust = 0.5, hjust = 1),  
+    axis.text.y = element_text(size = 16),                                       
+    axis.title.x = element_text(size = 18),                                      
+    axis.title.y = element_text(size = 18)                                       
   )
 
 ## 2nd cluster is very small
@@ -283,22 +261,19 @@ filtered_data <- clusteringdataset %>%
 clust_vars <- filtered_data %>%
   select(Home, Work, School, Leisure, Transport, Other)
 
-# Standaardiseren
 clust_scaled <- scale(clust_vars)
 
-# Afstandsmatrix en clustering
 dist_matrix <- dist(clust_scaled)
 hc <- hclust(dist_matrix^2, method = "ward.D2")
 
 # Plot dendrogram
 plot(hc, main = "Dendrogram contactprofielen", xlab = "", sub = "")
 
-#Elbow plot
+# Elbow plot
 fviz_nbclust(clust_vars, FUN = hcut, method = "wss")
 
+# Average silhouette plot
 sil_scores <- c()
-
-# Test voor aantal clusters van 2 tot 10
 for (k in 2:10) {
   clusters_k <- cutree(hc, k = k)
   sil <- silhouette(clusters_k, dist = dist_matrix)
@@ -306,34 +281,31 @@ for (k in 2:10) {
 }
 
 plot(2:10, sil_scores[2:10], type = "b", pch = 19,
-     xlab = "Aantal clusters", ylab = "Gemiddelde silhouette width",
-     main = "Silhouette-analyse")
+     xlab = "Number of clusters", ylab = "Average silhouette width",
+     main = "Silhouette-analysis")
 # 4 clusters
 
 ### 4 clusters ###
 k <- 4
 clusters <- cutree(hc, k = k)
 
-# Toevoegen aan data
 clust_vars$cluster <- as.factor(clusters)
 
 contactspercluser <- clust_vars %>%
   group_by(cluster) %>%
-  summarise(across(where(is.numeric), mean))  # gemiddeld contactpatroon per cluster
+  summarise(across(where(is.numeric), mean))  
 
 aantal_per_cluster <- clust_vars %>%
   count(cluster, name = "aantal_personen")
 
 fviz_cluster(list(data = clust_scaled, cluster = clusters))
 
-# Zet wide naar long: locatie als variabele
 cluster_means_long <- contactspercluser %>%
   pivot_longer(cols = -cluster, names_to = "locatie", values_to = "gem_aantal")
 
 cluster_means_long$locatie <- factor(cluster_means_long$locatie,
                                      levels = c("Home", "Work", "School", "Leisure", "Transport", "Other"))
 
-# 3. Maak de lijnplot
 ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
   geom_line(color = "steelblue", size = 1.2) +
   geom_point(color = "steelblue", size = 2) +
@@ -360,22 +332,19 @@ filtered_data <- clust_vars %>%
 clust_vars <- filtered_data %>%
   select(Home, Work, School, Leisure, Transport, Other)
 
-# Standaardiseren
 clust_scaled <- scale(clust_vars)
 
-# Afstandsmatrix en clustering
 dist_matrix <- dist(clust_scaled)
 hc <- hclust(dist_matrix^2, method = "ward.D2")
 
 # Plot dendrogram
 plot(hc, main = "Dendrogram contactprofielen", xlab = "", sub = "")
 
-#Elbow plot
+# Elbow plot
 fviz_nbclust(clust_vars, FUN = hcut, method = "wss")
 
+# Average silhouette plot
 sil_scores <- c()
-
-# Test voor aantal clusters van 2 tot 10
 for (k in 2:10) {
   clusters_k <- cutree(hc, k = k)
   sil <- silhouette(clusters_k, dist = dist_matrix)
@@ -383,34 +352,31 @@ for (k in 2:10) {
 }
 
 plot(2:10, sil_scores[2:10], type = "b", pch = 19,
-     xlab = "Aantal clusters", ylab = "Gemiddelde silhouette width",
-     main = "Silhouette-analyse")
+     xlab = "Number of clusters", ylab = "Average silhouette width",
+     main = "Silhouette-analysis")
 # 2 clusters
 
 ### 2 clusters ###
 k <- 2
 clusters <- cutree(hc, k = k)
 
-# Toevoegen aan data
 clust_vars$cluster <- as.factor(clusters)
 
 contactspercluser <- clust_vars %>%
   group_by(cluster) %>%
-  summarise(across(where(is.numeric), mean))  # gemiddeld contactpatroon per cluster
+  summarise(across(where(is.numeric), mean))  
 
 aantal_per_cluster <- clust_vars %>%
   count(cluster, name = "aantal_personen")
 
 fviz_cluster(list(data = clust_scaled, cluster = clusters))
 
-# Zet wide naar long: locatie als variabele
 cluster_means_long <- contactspercluser %>%
   pivot_longer(cols = -cluster, names_to = "locatie", values_to = "gem_aantal")
 
 cluster_means_long$locatie <- factor(cluster_means_long$locatie,
                                      levels = c("Home", "Work", "School", "Leisure", "Transport", "Other"))
 
-# 3. Maak de lijnplot
 ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
   geom_line(color = "steelblue", size = 1.2) +
   geom_point(color = "steelblue", size = 2) +
@@ -437,22 +403,19 @@ filtered_data <- clust_vars %>%
 clust_vars <- filtered_data %>%
   select(Home, Work, School, Leisure, Transport, Other)
 
-# Standaardiseren
 clust_scaled <- scale(clust_vars)
 
-# Afstandsmatrix en clustering
 dist_matrix <- dist(clust_scaled)
 hc <- hclust(dist_matrix^2, method = "ward.D2")
 
 # Plot dendrogram
 plot(hc, main = "Dendrogram contactprofielen", xlab = "", sub = "")
 
-#Elbow plot
+# Elbow plot
 fviz_nbclust(clust_vars, FUN = hcut, method = "wss")
 
+# Average silhouette plot
 sil_scores <- c()
-
-# Test voor aantal clusters van 2 tot 10
 for (k in 2:10) {
   clusters_k <- cutree(hc, k = k)
   sil <- silhouette(clusters_k, dist = dist_matrix)
@@ -460,34 +423,31 @@ for (k in 2:10) {
 }
 
 plot(2:10, sil_scores[2:10], type = "b", pch = 19,
-     xlab = "Aantal clusters", ylab = "Gemiddelde silhouette width",
-     main = "Silhouette-analyse")
+     xlab = "Number of clusters", ylab = "Average silhouette width",
+     main = "Silhouette-analysis")
 # 4 clusters
 
 ### 4 clusters ###
 k <- 4
 clusters <- cutree(hc, k = k)
 
-# Toevoegen aan data
 clust_vars$cluster <- as.factor(clusters)
 
 contactspercluser <- clust_vars %>%
   group_by(cluster) %>%
-  summarise(across(where(is.numeric), mean))  # gemiddeld contactpatroon per cluster
+  summarise(across(where(is.numeric), mean)) 
 
 aantal_per_cluster <- clust_vars %>%
   count(cluster, name = "aantal_personen")
 
 fviz_cluster(list(data = clust_scaled, cluster = clusters))
 
-# Zet wide naar long: locatie als variabele
 cluster_means_long <- contactspercluser %>%
   pivot_longer(cols = -cluster, names_to = "locatie", values_to = "gem_aantal")
 
 cluster_means_long$locatie <- factor(cluster_means_long$locatie,
                                      levels = c("Home", "Work", "School", "Leisure", "Transport", "Other"))
 
-# 3. Maak de lijnplot
 ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
   geom_line(color = "steelblue", size = 1.2) +
   geom_point(color = "steelblue", size = 2) +
@@ -508,30 +468,26 @@ ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
 clusteringdataset <- nonhouseholdcontacts_noagegender_children %>%
   filter(!is.na(place)) %>%
   group_by(part_uid, wave, place) %>%
-  summarise(n_contacts = n(), .groups = "drop") %>%  # aantal contacten per persoon per wave per locatie
+  summarise(n_contacts = n(), .groups = "drop") %>%  
   group_by(part_uid, place) %>%
-  summarise(mean_contacts = mean(n_contacts), .groups = "drop") %>%  # gemiddeld per locatie over alle waves
+  summarise(mean_contacts = mean(n_contacts), .groups = "drop") %>%  
   pivot_wider(names_from = place, values_from = mean_contacts, values_fill = 0)
 
-# Verwijder part_id voor clustering
 clust_input <- clusteringdataset %>% select(-part_uid)
 
-# Standaardiseren
 clust_scaled <- scale(clust_input)
 
-# Afstandsmatrix en clustering
 dist_matrix <- dist(clust_scaled)
 hc <- hclust(dist_matrix, method = "ward.D2")
 
 # Plot dendrogram
 plot(hc, main = "Dendrogram contactprofielen", xlab = "", sub = "")
 
-#Elbow plot
+# Elbow plot
 fviz_nbclust(clusteringdataset, FUN = hcut, method = "wss")
 
+# Average silhouette plot
 sil_scores <- c()
-
-# Test voor aantal clusters van 2 tot 10
 for (k in 2:10) {
   clusters_k <- cutree(hc, k = k)
   sil <- silhouette(clusters_k, dist = dist_matrix)
@@ -539,8 +495,8 @@ for (k in 2:10) {
 }
 
 plot(2:10, sil_scores[2:10], type = "b", pch = 19,
-     xlab = "Aantal clusters", ylab = "Gemiddelde silhouette width",
-     main = "Silhouette-analyse")
+     xlab = "Number of clusters", ylab = "Average silhouette width",
+     main = "Silhouette-analysis")
 
 fviz_nbclust(clusteringdataset, FUN = hcut, method = "silhouette")
 # 5 clusters
@@ -548,26 +504,23 @@ fviz_nbclust(clusteringdataset, FUN = hcut, method = "silhouette")
 k <- 5
 clusters <- cutree(hc, k = k)
 
-# Toevoegen aan data
 clusteringdataset$cluster <- as.factor(clusters)
 
 contactspercluser <- clusteringdataset %>%
   group_by(cluster) %>%
-  summarise(across(where(is.numeric), mean))  # gemiddeld contactpatroon per cluster
+  summarise(across(where(is.numeric), mean))  
 
 aantal_per_cluster <- clusteringdataset %>%
   count(cluster, name = "aantal_personen")
 
 fviz_cluster(list(data = clust_scaled, cluster = clusters))
 
-# Zet wide naar long: locatie als variabele
 cluster_means_long <- contactspercluser %>%
   pivot_longer(cols = -cluster, names_to = "locatie", values_to = "gem_aantal")
 
 cluster_means_long$locatie <- factor(cluster_means_long$locatie,
                                      levels = c("Home", "Work", "School", "Leisure", "Transport", "Other"))
 
-# 3. Maak de lijnplot
 ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
   geom_line(color = "steelblue", size = 1.2) +
   geom_point(color = "steelblue", size = 2) +
@@ -588,10 +541,10 @@ ggplot(cluster_means_long[cluster_means_long$cluster == 1, ], aes(x = locatie, y
   ) +
   theme_minimal() +
   theme(
-    axis.text.x = element_text(size = 16, angle = -90, vjust = 0.5, hjust = 1),  # x-axis tick labels
-    axis.text.y = element_text(size = 16),                                       # y-axis tick labels
-    axis.title.x = element_text(size = 18),                                      # x-axis label
-    axis.title.y = element_text(size = 18)                                       # y-axis label
+    axis.text.x = element_text(size = 16, angle = -90, vjust = 0.5, hjust = 1),  
+    axis.text.y = element_text(size = 16),                                       
+    axis.title.x = element_text(size = 18),                                      
+    axis.title.y = element_text(size = 18)                                       
   )
 ## 2 clusters are very small
 ## Therefore, we will exclude the participants from these clusters and perform the clustering algorithm again
@@ -609,22 +562,19 @@ filtered_data <- clusteringdataset %>%
 clust_vars <- filtered_data %>%
   select(Home, Work, School, Leisure, Transport, Other)
 
-# Standaardiseren
 clust_scaled <- scale(clust_vars)
 
-# Afstandsmatrix en clustering
 dist_matrix <- dist(clust_scaled)
 hc <- hclust(dist_matrix^2, method = "ward.D2")
 
 # Plot dendrogram
 plot(hc, main = "Dendrogram contactprofielen", xlab = "", sub = "")
 
-#Elbow plot
+# Elbow plot
 fviz_nbclust(clust_vars, FUN = hcut, method = "wss")
 
+# Average silhouette plot
 sil_scores <- c()
-
-# Test voor aantal clusters van 2 tot 10
 for (k in 2:10) {
   clusters_k <- cutree(hc, k = k)
   sil <- silhouette(clusters_k, dist = dist_matrix)
@@ -632,34 +582,31 @@ for (k in 2:10) {
 }
 
 plot(2:10, sil_scores[2:10], type = "b", pch = 19,
-     xlab = "Aantal clusters", ylab = "Gemiddelde silhouette width",
-     main = "Silhouette-analyse")
+     xlab = "Number of clusters", ylab = "Average silhouette width",
+     main = "Silhouette-analysis")
 # 4 clusters
 
 ### 4 clusters ###
 k <- 4
 clusters <- cutree(hc, k = k)
 
-# Toevoegen aan data
 clust_vars$cluster <- as.factor(clusters)
 
 contactspercluser <- clust_vars %>%
   group_by(cluster) %>%
-  summarise(across(where(is.numeric), mean))  # gemiddeld contactpatroon per cluster
+  summarise(across(where(is.numeric), mean))  
 
 aantal_per_cluster <- clust_vars %>%
   count(cluster, name = "aantal_personen")
 
 fviz_cluster(list(data = clust_scaled, cluster = clusters))
 
-# Zet wide naar long: locatie als variabele
 cluster_means_long <- contactspercluser %>%
   pivot_longer(cols = -cluster, names_to = "locatie", values_to = "gem_aantal")
 
 cluster_means_long$locatie <- factor(cluster_means_long$locatie,
                                      levels = c("Home", "Work", "School", "Leisure", "Transport", "Other"))
 
-# 3. Maak de lijnplot
 ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
   geom_line(color = "steelblue", size = 1.2) +
   geom_point(color = "steelblue", size = 2) +
@@ -680,30 +627,26 @@ ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
 clusteringdataset <- nonhouseholdcontacts_noage_Elderly %>%
   filter(!is.na(place)) %>%
   group_by(part_uid, wave, place) %>%
-  summarise(n_contacts = n(), .groups = "drop") %>%  # aantal contacten per persoon per wave per locatie
+  summarise(n_contacts = n(), .groups = "drop") %>%  
   group_by(part_uid, place) %>%
-  summarise(mean_contacts = mean(n_contacts), .groups = "drop") %>%  # gemiddeld per locatie over alle waves
+  summarise(mean_contacts = mean(n_contacts), .groups = "drop") %>%  
   pivot_wider(names_from = place, values_from = mean_contacts, values_fill = 0)
 
-# Verwijder part_id voor clustering
 clust_input <- clusteringdataset %>% select(-part_uid)
 
-# Standaardiseren
 clust_scaled <- scale(clust_input)
 
-# Afstandsmatrix en clustering
 dist_matrix <- dist(clust_scaled)
 hc <- hclust(dist_matrix, method = "ward.D2")
 
 # Plot dendrogram
 plot(hc, main = "Dendrogram contactprofielen", xlab = "", sub = "")
 
-#Elbow plot
+# Elbow plot
 fviz_nbclust(clusteringdataset, FUN = hcut, method = "wss")
 
+# Average silhouette plot
 sil_scores <- c()
-
-# Test voor aantal clusters van 2 tot 10
 for (k in 2:10) {
   clusters_k <- cutree(hc, k = k)
   sil <- silhouette(clusters_k, dist = dist_matrix)
@@ -711,8 +654,8 @@ for (k in 2:10) {
 }
 
 plot(2:10, sil_scores[2:10], type = "b", pch = 19,
-     xlab = "Aantal clusters", ylab = "Gemiddelde silhouette width",
-     main = "Silhouette-analyse")
+     xlab = "Number of clusters", ylab = "Average silhouette width",
+     main = "Silhouette-analysis")
 
 fviz_nbclust(clusteringdataset, FUN = hcut, method = "silhouette")
 # 3 clusters
@@ -721,26 +664,23 @@ fviz_nbclust(clusteringdataset, FUN = hcut, method = "silhouette")
 k <- 3
 clusters <- cutree(hc, k = k)
 
-# Toevoegen aan data
 clusteringdataset$cluster <- as.factor(clusters)
 
 contactspercluser <- clusteringdataset %>%
   group_by(cluster) %>%
-  summarise(across(where(is.numeric), mean))  # gemiddeld contactpatroon per cluster
+  summarise(across(where(is.numeric), mean)) 
 
 aantal_per_cluster <- clusteringdataset %>%
   count(cluster, name = "aantal_personen")
 
 fviz_cluster(list(data = clust_scaled, cluster = clusters))
 
-# Zet wide naar long: locatie als variabele
 cluster_means_long <- contactspercluser %>%
   pivot_longer(cols = -cluster, names_to = "locatie", values_to = "gem_aantal")
 
 cluster_means_long$locatie <- factor(cluster_means_long$locatie,
                                      levels = c("Home", "Work", "School", "Leisure", "Transport", "Other"))
 
-# 3. Maak de lijnplot
 ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
   geom_line(color = "steelblue", size = 1.2) +
   geom_point(color = "steelblue", size = 2) +
@@ -761,36 +701,33 @@ ggplot(cluster_means_long[cluster_means_long$cluster == 1, ], aes(x = locatie, y
   ) +
   theme_minimal() +
   theme(
-    axis.text.x = element_text(size = 16, angle = -90, vjust = 0.5, hjust = 1),  # x-axis tick labels
-    axis.text.y = element_text(size = 16),                                       # y-axis tick labels
-    axis.title.x = element_text(size = 18),                                      # x-axis label
-    axis.title.y = element_text(size = 18)                                       # y-axis label
+    axis.text.x = element_text(size = 16, angle = -90, vjust = 0.5, hjust = 1), 
+    axis.text.y = element_text(size = 16),                                      
+    axis.title.x = element_text(size = 18),                                     
+    axis.title.y = element_text(size = 18)                                     
   )
 
 ## 5 clusters
 k <- 5
 clusters <- cutree(hc, k = k)
 
-# Toevoegen aan data
 clusteringdataset$cluster <- as.factor(clusters)
 
 contactspercluser <- clusteringdataset %>%
   group_by(cluster) %>%
-  summarise(across(where(is.numeric), mean))  # gemiddeld contactpatroon per cluster
+  summarise(across(where(is.numeric), mean)) 
 
 aantal_per_cluster <- clusteringdataset %>%
   count(cluster, name = "aantal_personen")
 
 fviz_cluster(list(data = clust_scaled, cluster = clusters))
 
-# Zet wide naar long: locatie als variabele
 cluster_means_long <- contactspercluser %>%
   pivot_longer(cols = -cluster, names_to = "locatie", values_to = "gem_aantal")
 
 cluster_means_long$locatie <- factor(cluster_means_long$locatie,
                                      levels = c("Home", "Work", "School", "Leisure", "Transport", "Other"))
 
-# 3. Maak de lijnplot
 ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
   geom_line(color = "steelblue", size = 1.2) +
   geom_point(color = "steelblue", size = 2) +
@@ -808,26 +745,23 @@ ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
 k <- 6
 clusters <- cutree(hc, k = k)
 
-# Toevoegen aan data
 clusteringdataset$cluster <- as.factor(clusters)
 
 contactspercluser <- clusteringdataset %>%
   group_by(cluster) %>%
-  summarise(across(where(is.numeric), mean))  # gemiddeld contactpatroon per cluster
+  summarise(across(where(is.numeric), mean)) 
 
 aantal_per_cluster <- clusteringdataset %>%
   count(cluster, name = "aantal_personen")
 
 fviz_cluster(list(data = clust_scaled, cluster = clusters))
 
-# Zet wide naar long: locatie als variabele
 cluster_means_long <- contactspercluser %>%
   pivot_longer(cols = -cluster, names_to = "locatie", values_to = "gem_aantal")
 
 cluster_means_long$locatie <- factor(cluster_means_long$locatie,
                                      levels = c("Home", "Work", "School", "Leisure", "Transport", "Other"))
 
-# 3. Maak de lijnplot
 ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
   geom_line(color = "steelblue", size = 1.2) +
   geom_point(color = "steelblue", size = 2) +
@@ -858,11 +792,11 @@ gower_dist <- daisy(clust_data_adult, metric = "gower")
 
 hc <- hclust(gower_dist, method = "average")
 
-plot(hc,main = "Dendogram with Gower distance")
+# Plot dendrogram
+plot(hc,main = "Dendrogram with Gower distance")
 
+# Plot average silhouette
 sil_scores <- c()
-
-# Test voor aantal clusters van 2 tot 10
 for (k in 2:10) {
   clusters_k <- cutree(hc, k = k)
   sil <- silhouette(clusters_k, dist = gower_dist)
@@ -870,8 +804,8 @@ for (k in 2:10) {
 }
 
 plot(2:10, sil_scores[2:10], type = "b", pch = 19,
-     xlab = "Aantal clusters", ylab = "Gemiddelde silhouette width",
-     main = "Silhouette-analyse")
+     xlab = "Number of clusters", ylab = "Average silhouette width",
+     main = "Silhouette-analysis")
 # 3 clusters
 
 k <- 3
@@ -881,11 +815,11 @@ clust_data_adult$cluster <- as.factor(clusters)
 
 table(clust_data_adult$cluster)
 
-# Zet alle variabelen als factors
+# Convert all variables to factors
 clust_data_long <- clust_data_adult %>%
   pivot_longer(cols = -c(part_uid, cluster), names_to = "variable", values_to = "value")
 
-# Bereken percentage per cluster en categorie
+# Calculate percentage per cluster and category
 clust_props <- clust_data_long %>%
   group_by(cluster, variable, value) %>%
   summarise(n = n(), .groups = "drop") %>%
@@ -898,7 +832,6 @@ clust_props <- clust_props %>%
     "part_gender", "area_3_name"
   )))
 
-#800 x 500
 ggplot(clust_props, aes(x = variable, y = value, fill = percentage)) +
   geom_tile(color = "white") +
   facet_wrap(~ cluster, nrow = 1) +
@@ -907,23 +840,21 @@ ggplot(clust_props, aes(x = variable, y = value, fill = percentage)) +
   labs(x = "Variable", y = "Category") +
   theme_minimal() +
   theme(
-    axis.text.x = element_text(size = 12, angle = -90, vjust = 0.5, hjust = 1),  # x-axis tick labels
-    axis.text.y = element_text(size = 12),                                       # y-axis tick labels
-    axis.title.x = element_text(size = 14),                                      # x-axis label
-    axis.title.y = element_text(size = 14)                                       # y-axis label
+    axis.text.x = element_text(size = 12, angle = -90, vjust = 0.5, hjust = 1),  
+    axis.text.y = element_text(size = 12),                                       
+    axis.title.x = element_text(size = 14),                                      
+    axis.title.y = element_text(size = 14)                                      
   )
 
-## Gemiddeld aantal non-household contacten per cluster
-# 1. Voeg clusters toe aan finaldataset via part_uid
+## Average number of non-household contacts per cluster
 final_with_clusters <- finaldataset_noage_adult %>%
   left_join(clust_data_adult %>% dplyr::select(part_uid, cluster), by = "part_uid")
 
-# 2. Bereken gemiddeld aantal niet-huishoudelijke contacten per cluster
 cluster_means <- final_with_clusters %>%
   group_by(cluster) %>%
   summarise(mean_contacts = mean(num_nonhouseh_cont, na.rm = TRUE), median_contacts = median(num_nonhouseh_cont, na.rm = TRUE))
 
-## Gemiddeld aantal contacten per locatie per cluster
+## Average number of contacts per location per cluster
 clusteringdataset <- nonhouseholdcontacts_noage_adult %>%
   filter(!is.na(place)) %>%
   group_by(part_uid, place) %>%
@@ -938,14 +869,12 @@ contactspercluser <- final_with_clusters %>%
   group_by(cluster) %>%
   summarise(across(where(is.numeric), mean))
 
-# Zet wide naar long: locatie als variabele
 cluster_means_long <- contactspercluser %>%
   pivot_longer(cols = -cluster, names_to = "locatie", values_to = "gem_aantal")
 
 cluster_means_long$locatie <- factor(cluster_means_long$locatie,
                                      levels = c("Home", "Work", "School", "Leisure", "Transport", "Other"))
 
-# 3. Maak de lijnplot
 ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
   geom_line(color = "steelblue", size = 1.2) +
   geom_point(color = "steelblue", size = 2) +
@@ -955,10 +884,10 @@ ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
   ) +
   theme_minimal() +
   theme(
-    axis.text.x = element_text(size = 16, angle = -90, vjust = 0.5, hjust = 1),  # x-axis tick labels
-    axis.text.y = element_text(size = 16),                                       # y-axis tick labels
-    axis.title.x = element_text(size = 16),                                      # x-axis label
-    axis.title.y = element_text(size = 16)                                       # y-axis label
+    axis.text.x = element_text(size = 16, angle = -90, vjust = 0.5, hjust = 1),  
+    axis.text.y = element_text(size = 16),                                      
+    axis.title.x = element_text(size = 16),                                      
+    axis.title.y = element_text(size = 16)                                       
   )
 
 
@@ -978,11 +907,11 @@ gower_dist <- daisy(clust_data_children, metric = "gower")
 
 hc <- hclust(gower_dist, method = "average")
 
-plot(hc,main = "Dendogram with Gower distance")
+# Plot dendrogram
+plot(hc,main = "Dendrogram with Gower distance")
 
+# Plot average silhouette
 sil_scores <- c()
-
-# Test voor aantal clusters van 2 tot 10
 for (k in 2:10) {
   clusters_k <- cutree(hc, k = k)
   sil <- silhouette(clusters_k, dist = gower_dist)
@@ -990,8 +919,8 @@ for (k in 2:10) {
 }
 
 plot(2:10, sil_scores[2:10], type = "b", pch = 19,
-     xlab = "Aantal clusters", ylab = "Gemiddelde silhouette width",
-     main = "Silhouette-analyse")
+     xlab = "Number of clusters", ylab = "Average silhouette width",
+     main = "Silhouette-analysis")
 # 3 clusters
 
 k <- 3
@@ -1001,11 +930,9 @@ clust_data_children$cluster <- as.factor(clusters)
 
 table(clust_data_children$cluster)
 
-# Zet alle variabelen als factors
 clust_data_long <- clust_data_children %>%
   pivot_longer(cols = -c(part_uid, cluster), names_to = "variable", values_to = "value")
 
-# Bereken percentage per cluster en categorie
 clust_props <- clust_data_long %>%
   group_by(cluster, variable, value) %>%
   summarise(n = n(), .groups = "drop") %>%
@@ -1017,7 +944,6 @@ clust_props <- clust_props %>%
     "part_social_group_be", "hhsize_cat", "area_3_name"
   )))
 
-#800 x 500
 ggplot(clust_props, aes(x = variable, y = value, fill = percentage)) +
   geom_tile(color = "white") +
   facet_wrap(~ cluster, nrow = 1) +
@@ -1026,23 +952,19 @@ ggplot(clust_props, aes(x = variable, y = value, fill = percentage)) +
   labs(x = "Variable", y = "Category") +
   theme_minimal() +
   theme(
-    axis.text.x = element_text(size = 12, angle = -90, vjust = 0.5, hjust = 1),  # x-axis tick labels
-    axis.text.y = element_text(size = 12),                                       # y-axis tick labels
-    axis.title.x = element_text(size = 14),                                      # x-axis label
-    axis.title.y = element_text(size = 14)                                       # y-axis label
+    axis.text.x = element_text(size = 12, angle = -90, vjust = 0.5, hjust = 1), 
+    axis.text.y = element_text(size = 12),                                      
+    axis.title.x = element_text(size = 14),                                     
+    axis.title.y = element_text(size = 14)                                     
   )
 
-## Gemiddeld aantal non-household contacten per cluster
-# 1. Voeg clusters toe aan finaldataset via part_uid
 final_with_clusters <- finaldataset_noagegender_children %>%
   left_join(clust_data_children %>% dplyr::select(part_uid, cluster), by = "part_uid")
 
-# 2. Bereken gemiddeld aantal niet-huishoudelijke contacten per cluster
 cluster_means <- final_with_clusters %>%
   group_by(cluster) %>%
   summarise(mean_contacts = mean(num_nonhouseh_cont, na.rm = TRUE), median_contacts = median(num_nonhouseh_cont, na.rm = TRUE))
 
-## Gemiddeld aantal contacten per locatie per cluster
 clusteringdataset <- nonhouseholdcontacts_noagegender_children %>%
   filter(!is.na(place)) %>%
   group_by(part_uid, place) %>%
@@ -1057,14 +979,12 @@ contactspercluser <- final_with_clusters %>%
   group_by(cluster) %>%
   summarise(across(where(is.numeric), mean))
 
-# Zet wide naar long: locatie als variabele
 cluster_means_long <- contactspercluser %>%
   pivot_longer(cols = -cluster, names_to = "locatie", values_to = "gem_aantal")
 
 cluster_means_long$locatie <- factor(cluster_means_long$locatie,
                                      levels = c("Home", "Work", "School", "Leisure", "Transport", "Other"))
 
-# 3. Maak de lijnplot
 ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
   geom_line(color = "steelblue", size = 1.2) +
   geom_point(color = "steelblue", size = 2) +
@@ -1074,10 +994,10 @@ ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
   ) +
   theme_minimal() +
   theme(
-    axis.text.x = element_text(size = 16, angle = -90, vjust = 0.5, hjust = 1),  # x-axis tick labels
-    axis.text.y = element_text(size = 16),                                       # y-axis tick labels
-    axis.title.x = element_text(size = 16),                                      # x-axis label
-    axis.title.y = element_text(size = 16)                                       # y-axis label
+    axis.text.x = element_text(size = 16, angle = -90, vjust = 0.5, hjust = 1), 
+    axis.text.y = element_text(size = 16),                                       
+    axis.title.x = element_text(size = 16),                                      
+    axis.title.y = element_text(size = 16)                                       
   )
 
 
@@ -1097,11 +1017,11 @@ gower_dist <- daisy(clust_data_elderly, metric = "gower")
 
 hc <- hclust(gower_dist, method = "average")
 
-plot(hc,main = "Dendogram with Gower distance")
+# Plot dendrogram
+plot(hc,main = "Dendrogram with Gower distance")
 
+# Average silhouette plot
 sil_scores <- c()
-
-# Test voor aantal clusters van 2 tot 10
 for (k in 2:10) {
   clusters_k <- cutree(hc, k = k)
   sil <- silhouette(clusters_k, dist = gower_dist)
@@ -1109,8 +1029,8 @@ for (k in 2:10) {
 }
 
 plot(2:10, sil_scores[2:10], type = "b", pch = 19,
-     xlab = "Aantal clusters", ylab = "Gemiddelde silhouette width",
-     main = "Silhouette-analyse")
+     xlab = "Number of clusters", ylab = "Average silhouette width",
+     main = "Silhouette-analysis")
 # 2 clusters
 
 k <- 2
@@ -1120,11 +1040,9 @@ clust_data_elderly$cluster <- as.factor(clusters)
 
 table(clust_data_elderly$cluster)
 
-# Zet alle variabelen als factors
 clust_data_long <- clust_data_elderly %>%
   pivot_longer(cols = -c(part_uid, cluster), names_to = "variable", values_to = "value")
 
-# Bereken percentage per cluster en categorie
 clust_props <- clust_data_long %>%
   group_by(cluster, variable, value) %>%
   summarise(n = n(), .groups = "drop") %>%
@@ -1136,7 +1054,6 @@ clust_props <- clust_props %>%
     "part_gender", "part_social_group_be", "hhsize_cat", "area_3_name"
   )))
 
-#800 x 500
 ggplot(clust_props, aes(x = variable, y = value, fill = percentage)) +
   geom_tile(color = "white") +
   facet_wrap(~ cluster, nrow = 1) +
@@ -1145,23 +1062,19 @@ ggplot(clust_props, aes(x = variable, y = value, fill = percentage)) +
   labs(x = "Variable", y = "Category") +
   theme_minimal() +
   theme(
-    axis.text.x = element_text(size = 12, angle = -90, vjust = 0.5, hjust = 1),  # x-axis tick labels
-    axis.text.y = element_text(size = 12),                                       # y-axis tick labels
-    axis.title.x = element_text(size = 14),                                      # x-axis label
-    axis.title.y = element_text(size = 14)                                       # y-axis label
+    axis.text.x = element_text(size = 12, angle = -90, vjust = 0.5, hjust = 1),  
+    axis.text.y = element_text(size = 12),                                       
+    axis.title.x = element_text(size = 14),                                      
+    axis.title.y = element_text(size = 14)                                       
   )
 
-## Gemiddeld aantal non-household contacten per cluster
-# 1. Voeg clusters toe aan finaldataset via part_uid
 final_with_clusters <- finaldataset_noage_Elderly %>%
   left_join(clust_data_elderly %>% dplyr::select(part_uid, cluster), by = "part_uid")
 
-# 2. Bereken gemiddeld aantal niet-huishoudelijke contacten per cluster
 cluster_means <- final_with_clusters %>%
   group_by(cluster) %>%
   summarise(mean_contacts = mean(num_nonhouseh_cont, na.rm = TRUE), median_contacts = median(num_nonhouseh_cont, na.rm = TRUE))
 
-## Gemiddeld aantal contacten per locatie per cluster
 clusteringdataset <- nonhouseholdcontacts_noage_Elderly %>%
   filter(!is.na(place)) %>%
   group_by(part_uid, place) %>%
@@ -1176,14 +1089,12 @@ contactspercluser <- final_with_clusters %>%
   group_by(cluster) %>%
   summarise(across(where(is.numeric), mean))
 
-# Zet wide naar long: locatie als variabele
 cluster_means_long <- contactspercluser %>%
   pivot_longer(cols = -cluster, names_to = "locatie", values_to = "gem_aantal")
 
 cluster_means_long$locatie <- factor(cluster_means_long$locatie,
                                      levels = c("Home", "Work", "School", "Leisure", "Transport", "Other"))
 
-# 3. Maak de lijnplot
 ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
   geom_line(color = "steelblue", size = 1.2) +
   geom_point(color = "steelblue", size = 2) +
@@ -1193,10 +1104,10 @@ ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
   ) +
   theme_minimal() +
   theme(
-    axis.text.x = element_text(size = 16, angle = -90, vjust = 0.5, hjust = 1),  # x-axis tick labels
-    axis.text.y = element_text(size = 16),                                       # y-axis tick labels
-    axis.title.x = element_text(size = 16),                                      # x-axis label
-    axis.title.y = element_text(size = 16)                                       # y-axis label
+    axis.text.x = element_text(size = 16, angle = -90, vjust = 0.5, hjust = 1),  
+    axis.text.y = element_text(size = 16),                                       
+    axis.title.x = element_text(size = 16),                                      
+    axis.title.y = element_text(size = 16)                                       
   )
 
 #### Demographic with ordinal variables educationmainearner and hhsize ####
@@ -1225,11 +1136,11 @@ gower_dist <- daisy(clust_data_adult, metric = "gower")
 
 hc <- hclust(gower_dist, method = "average")
 
-plot(hc,main = "Dendogram with Gower distance")
+# Plot dendrogram
+plot(hc,main = "Dendrogram with Gower distance")
 
+# Average silhouette plot
 sil_scores <- c()
-
-# Test voor aantal clusters van 2 tot 10
 for (k in 2:10) {
   clusters_k <- cutree(hc, k = k)
   sil <- silhouette(clusters_k, dist = gower_dist)
@@ -1237,8 +1148,8 @@ for (k in 2:10) {
 }
 
 plot(2:10, sil_scores[2:10], type = "b", pch = 19,
-     xlab = "Aantal clusters", ylab = "Gemiddelde silhouette width",
-     main = "Silhouette-analyse")
+     xlab = "Number of clusters", ylab = "Average silhouette width",
+     main = "Silhouette-analysis")
 # 5 clusters
 
 k <- 5
@@ -1246,7 +1157,7 @@ clusters <- cutree(hc,k=k)
 
 clust_data_adult$cluster <- as.factor(clusters)
 
-table(clust_data_adult$cluster) #Cluster 5 has 1 observation, so will be removed
+table(clust_data_adult$cluster) # Cluster 5 has 1 observation, so will be removed
 
 clust_data_adult <- clust_data_adult %>% filter(cluster != 5)
 
@@ -1258,13 +1169,11 @@ clust_data_adult <- clust_data_adult %>%
                         levels = 1:4,
                         labels = c("1", "2", "3", "4+")))
 
-# Zet alle variabelen als factors
 clust_data_long <- clust_data_adult %>%
   dplyr::select(-educationmainearner_ord, -hhsize_ord) %>%
   mutate(across(-c(part_uid, cluster), as.factor)) %>%
   pivot_longer(cols = -c(part_uid, cluster), names_to = "variable", values_to = "value")
 
-# Bereken percentage per cluster en categorie
 clust_props <- clust_data_long %>%
   group_by(cluster, variable, value) %>%
   summarise(n = n(), .groups = "drop") %>%
@@ -1281,7 +1190,6 @@ clust_props <- clust_props %>%
     "Gender", "Area"
   )))
 
-#800 x 500
 ggplot(clust_props, aes(x = variable, y = value, fill = percentage)) +
   geom_tile(color = "white") +
   facet_wrap(~ cluster, nrow = 1) +
@@ -1290,23 +1198,19 @@ ggplot(clust_props, aes(x = variable, y = value, fill = percentage)) +
   labs(x = "Variable", y = "Category") +
   theme_minimal() +
   theme(
-    axis.text.x = element_text(size = 12, angle = -90, vjust = 0.5, hjust = 1),  # x-axis tick labels
-    axis.text.y = element_text(size = 12),                                       # y-axis tick labels
-    axis.title.x = element_text(size = 14),                                      # x-axis label
-    axis.title.y = element_text(size = 14)                                       # y-axis label
+    axis.text.x = element_text(size = 12, angle = -90, vjust = 0.5, hjust = 1),  
+    axis.text.y = element_text(size = 12),                                       
+    axis.title.x = element_text(size = 14),                                      
+    axis.title.y = element_text(size = 14)                                       
   )
 
-## Gemiddeld aantal non-household contacten per cluster
-# 1. Voeg clusters toe aan finaldataset via part_uid
 final_with_clusters <- finaldataset_noage_adult %>%
   left_join(clust_data_adult %>% dplyr::select(part_uid, cluster), by = "part_uid")
 
-# 2. Bereken gemiddeld aantal niet-huishoudelijke contacten per cluster
 cluster_means <- final_with_clusters %>%
   group_by(cluster) %>%
   summarise(mean_contacts = mean(num_nonhouseh_cont, na.rm = TRUE), median_contacts = median(num_nonhouseh_cont, na.rm = TRUE))
 
-## Gemiddeld aantal contacten per locatie per cluster
 clusteringdataset <- nonhouseholdcontacts_noage_adult %>%
   filter(!is.na(place)) %>%
   group_by(part_uid, place) %>%
@@ -1321,14 +1225,12 @@ contactspercluser <- final_with_clusters %>%
   group_by(cluster) %>%
   summarise(across(where(is.numeric), mean))
 
-# Zet wide naar long: locatie als variabele
 cluster_means_long <- contactspercluser %>%
   pivot_longer(cols = -cluster, names_to = "locatie", values_to = "gem_aantal")
 
 cluster_means_long$locatie <- factor(cluster_means_long$locatie,
                                      levels = c("Home", "Work", "School", "Leisure", "Transport", "Other"))
 
-# 3. Maak de lijnplot
 ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
   geom_line(color = "steelblue", size = 1.2) +
   geom_point(color = "steelblue", size = 2) +
@@ -1338,10 +1240,10 @@ ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
   ) +
   theme_minimal() +
   theme(
-    axis.text.x = element_text(size = 16, angle = -90, vjust = 0.5, hjust = 1),  # x-axis tick labels
-    axis.text.y = element_text(size = 16),                                       # y-axis tick labels
-    axis.title.x = element_text(size = 16),                                      # x-axis label
-    axis.title.y = element_text(size = 16)                                       # y-axis label
+    axis.text.x = element_text(size = 16, angle = -90, vjust = 0.5, hjust = 1),  
+    axis.text.y = element_text(size = 16),                                       
+    axis.title.x = element_text(size = 16),                                      
+    axis.title.y = element_text(size = 16)                                       
   )
 
 
@@ -1361,11 +1263,11 @@ gower_dist <- daisy(clust_data_children, metric = "gower")
 
 hc <- hclust(gower_dist, method = "average")
 
-plot(hc,main = "Dendogram with Gower distance")
+# Plot dendrogram
+plot(hc,main = "Dendrogram with Gower distance")
 
+# Average silhouette plot
 sil_scores <- c()
-
-# Test voor aantal clusters van 2 tot 10
 for (k in 2:10) {
   clusters_k <- cutree(hc, k = k)
   sil <- silhouette(clusters_k, dist = gower_dist)
@@ -1373,8 +1275,8 @@ for (k in 2:10) {
 }
 
 plot(2:10, sil_scores[2:10], type = "b", pch = 19,
-     xlab = "Aantal clusters", ylab = "Gemiddelde silhouette width",
-     main = "Silhouette-analyse")
+     xlab = "Number of clusters", ylab = "Average silhouette width",
+     main = "Silhouette-analysis")
 # 3 clusters
 
 k <- 3
@@ -1384,11 +1286,9 @@ clust_data_children$cluster <- as.factor(clusters)
 
 table(clust_data_children$cluster)
 
-# Zet alle variabelen als factors
 clust_data_long <- clust_data_children %>%
   pivot_longer(cols = -c(part_uid, cluster), names_to = "variable", values_to = "value")
 
-# Bereken percentage per cluster en categorie
 clust_props <- clust_data_long %>%
   group_by(cluster, variable, value) %>%
   summarise(n = n(), .groups = "drop") %>%
@@ -1400,7 +1300,6 @@ clust_props <- clust_props %>%
     "part_social_group_be", "hhsize_cat", "area_3_name"
   )))
 
-#800 x 500
 ggplot(clust_props, aes(x = variable, y = value, fill = percentage)) +
   geom_tile(color = "white") +
   facet_wrap(~ cluster, nrow = 1) +
@@ -1409,23 +1308,19 @@ ggplot(clust_props, aes(x = variable, y = value, fill = percentage)) +
   labs(x = "Variable", y = "Category") +
   theme_minimal() +
   theme(
-    axis.text.x = element_text(size = 12, angle = -90, vjust = 0.5, hjust = 1),  # x-axis tick labels
-    axis.text.y = element_text(size = 12),                                       # y-axis tick labels
-    axis.title.x = element_text(size = 14),                                      # x-axis label
-    axis.title.y = element_text(size = 14)                                       # y-axis label
+    axis.text.x = element_text(size = 12, angle = -90, vjust = 0.5, hjust = 1),  
+    axis.text.y = element_text(size = 12),                                       
+    axis.title.x = element_text(size = 14),                                      
+    axis.title.y = element_text(size = 14)                                       
   )
 
-## Gemiddeld aantal non-household contacten per cluster
-# 1. Voeg clusters toe aan finaldataset via part_uid
 final_with_clusters <- finaldataset_noagegender_children %>%
   left_join(clust_data_children %>% dplyr::select(part_uid, cluster), by = "part_uid")
 
-# 2. Bereken gemiddeld aantal niet-huishoudelijke contacten per cluster
 cluster_means <- final_with_clusters %>%
   group_by(cluster) %>%
   summarise(mean_contacts = mean(num_nonhouseh_cont, na.rm = TRUE), median_contacts = median(num_nonhouseh_cont, na.rm = TRUE))
 
-## Gemiddeld aantal contacten per locatie per cluster
 clusteringdataset <- nonhouseholdcontacts_noagegender_children %>%
   filter(!is.na(place)) %>%
   group_by(part_uid, place) %>%
@@ -1440,14 +1335,12 @@ contactspercluser <- final_with_clusters %>%
   group_by(cluster) %>%
   summarise(across(where(is.numeric), mean))
 
-# Zet wide naar long: locatie als variabele
 cluster_means_long <- contactspercluser %>%
   pivot_longer(cols = -cluster, names_to = "locatie", values_to = "gem_aantal")
 
 cluster_means_long$locatie <- factor(cluster_means_long$locatie,
                                      levels = c("Home", "Work", "School", "Leisure", "Transport", "Other"))
 
-# 3. Maak de lijnplot
 ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
   geom_line(color = "steelblue", size = 1.2) +
   geom_point(color = "steelblue", size = 2) +
@@ -1457,10 +1350,10 @@ ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
   ) +
   theme_minimal() +
   theme(
-    axis.text.x = element_text(size = 16, angle = -90, vjust = 0.5, hjust = 1),  # x-axis tick labels
-    axis.text.y = element_text(size = 16),                                       # y-axis tick labels
-    axis.title.x = element_text(size = 16),                                      # x-axis label
-    axis.title.y = element_text(size = 16)                                       # y-axis label
+    axis.text.x = element_text(size = 16, angle = -90, vjust = 0.5, hjust = 1),  
+    axis.text.y = element_text(size = 16),                                       
+    axis.title.x = element_text(size = 16),                                      
+    axis.title.y = element_text(size = 16)                                       
   )
 
 
@@ -1480,11 +1373,11 @@ gower_dist <- daisy(clust_data_elderly, metric = "gower")
 
 hc <- hclust(gower_dist, method = "average")
 
-plot(hc,main = "Dendogram with Gower distance")
+# Plot dendrogram
+plot(hc,main = "Dendrogram with Gower distance")
 
+# Average silhouette plot
 sil_scores <- c()
-
-# Test voor aantal clusters van 2 tot 10
 for (k in 2:10) {
   clusters_k <- cutree(hc, k = k)
   sil <- silhouette(clusters_k, dist = gower_dist)
@@ -1492,8 +1385,8 @@ for (k in 2:10) {
 }
 
 plot(2:10, sil_scores[2:10], type = "b", pch = 19,
-     xlab = "Aantal clusters", ylab = "Gemiddelde silhouette width",
-     main = "Silhouette-analyse")
+     xlab = "Number of clusters", ylab = "Average silhouette width",
+     main = "Silhouette-analysis")
 # 2 clusters
 
 k <- 2
@@ -1503,11 +1396,9 @@ clust_data_elderly$cluster <- as.factor(clusters)
 
 table(clust_data_elderly$cluster)
 
-# Zet alle variabelen als factors
 clust_data_long <- clust_data_elderly %>%
   pivot_longer(cols = -c(part_uid, cluster), names_to = "variable", values_to = "value")
 
-# Bereken percentage per cluster en categorie
 clust_props <- clust_data_long %>%
   group_by(cluster, variable, value) %>%
   summarise(n = n(), .groups = "drop") %>%
@@ -1519,7 +1410,6 @@ clust_props <- clust_props %>%
     "part_gender", "part_social_group_be", "hhsize_cat", "area_3_name"
   )))
 
-#800 x 500
 ggplot(clust_props, aes(x = variable, y = value, fill = percentage)) +
   geom_tile(color = "white") +
   facet_wrap(~ cluster, nrow = 1) +
@@ -1528,23 +1418,19 @@ ggplot(clust_props, aes(x = variable, y = value, fill = percentage)) +
   labs(x = "Variable", y = "Category") +
   theme_minimal() +
   theme(
-    axis.text.x = element_text(size = 12, angle = -90, vjust = 0.5, hjust = 1),  # x-axis tick labels
-    axis.text.y = element_text(size = 12),                                       # y-axis tick labels
-    axis.title.x = element_text(size = 14),                                      # x-axis label
-    axis.title.y = element_text(size = 14)                                       # y-axis label
+    axis.text.x = element_text(size = 12, angle = -90, vjust = 0.5, hjust = 1),  
+    axis.text.y = element_text(size = 12),                                       
+    axis.title.x = element_text(size = 14),                                      
+    axis.title.y = element_text(size = 14)                                       
   )
 
-## Gemiddeld aantal non-household contacten per cluster
-# 1. Voeg clusters toe aan finaldataset via part_uid
 final_with_clusters <- finaldataset_noage_Elderly %>%
   left_join(clust_data_elderly %>% dplyr::select(part_uid, cluster), by = "part_uid")
 
-# 2. Bereken gemiddeld aantal niet-huishoudelijke contacten per cluster
 cluster_means <- final_with_clusters %>%
   group_by(cluster) %>%
   summarise(mean_contacts = mean(num_nonhouseh_cont, na.rm = TRUE), median_contacts = median(num_nonhouseh_cont, na.rm = TRUE))
 
-## Gemiddeld aantal contacten per locatie per cluster
 clusteringdataset <- nonhouseholdcontacts_noage_Elderly %>%
   filter(!is.na(place)) %>%
   group_by(part_uid, place) %>%
@@ -1559,14 +1445,12 @@ contactspercluser <- final_with_clusters %>%
   group_by(cluster) %>%
   summarise(across(where(is.numeric), mean))
 
-# Zet wide naar long: locatie als variabele
 cluster_means_long <- contactspercluser %>%
   pivot_longer(cols = -cluster, names_to = "locatie", values_to = "gem_aantal")
 
 cluster_means_long$locatie <- factor(cluster_means_long$locatie,
                                      levels = c("Home", "Work", "School", "Leisure", "Transport", "Other"))
 
-# 3. Maak de lijnplot
 ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
   geom_line(color = "steelblue", size = 1.2) +
   geom_point(color = "steelblue", size = 2) +
@@ -1576,20 +1460,11 @@ ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
   ) +
   theme_minimal() +
   theme(
-    axis.text.x = element_text(size = 16, angle = -90, vjust = 0.5, hjust = 1),  # x-axis tick labels
-    axis.text.y = element_text(size = 16),                                       # y-axis tick labels
-    axis.title.x = element_text(size = 16),                                      # x-axis label
-    axis.title.y = element_text(size = 16)                                       # y-axis label
+    axis.text.x = element_text(size = 16, angle = -90, vjust = 0.5, hjust = 1),  
+    axis.text.y = element_text(size = 16),                                       
+    axis.title.x = element_text(size = 16),                                      
+    axis.title.y = element_text(size = 16)                                       
   )
-
-
-
-
-
-
-
-
-
 
 
 #### SES ####
