@@ -233,7 +233,7 @@ modelchildren2.2nowavecount <- gamlss(num_nonhouseh_cont ~ part_face_mask+
 #17 iterations, AIC = 27166.4
 
 ## No further reductions
-### Built model for sigma
+### Build model for sigma
 modelchildrensigma1 <- gamlss(num_nonhouseh_cont ~ part_face_mask+
                         area_3_name+holiday+wd+wavecount+holiday:area_3_name+
                         pvc(day_number)+
