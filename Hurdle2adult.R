@@ -68,6 +68,7 @@ hurdle2_adultnb1wavecountshort <- glmmTMB(
   family = truncated_nbinom2)
 #AIC = 44137.12, -2Loglik = 44089.12, 22 param
 
+## Include interaction effect
 hurdle2_adult2.1 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + employstatus +
     educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
@@ -196,6 +197,7 @@ hurdle2_adult2.14 <- glmmTMB(
 
 pchisq(44054.59-44028.41, df=length(fixef(hurdle2_adult2.3)$cond)-length(fixef(hurdle2_adultnb1wavecount)$cond), lower.tail=FALSE)
 
+## Can we include another interaction effect?
 hurdle2_adult3.1 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + employstatus +
     educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
@@ -316,6 +318,7 @@ hurdle2_adult3.13 <- glmmTMB(
 pchisq(44028.41-44009.96, df=length(fixef(hurdle2_adult3.4)$cond)-length(fixef(hurdle2_adult2.3)$cond), lower.tail=FALSE)
 pchisq(44028.41-44007.98, df=length(fixef(hurdle2_adult3.10)$cond)-length(fixef(hurdle2_adult2.3)$cond), lower.tail=FALSE)
 
+## Can we include another interaction effect?
 hurdle2_adult4.1 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + employstatus +
     educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
@@ -426,6 +429,7 @@ hurdle2_adult4.12 <- glmmTMB(
 
 pchisq(44009.96-43990.99, df=length(fixef(hurdle2_adult4.9)$cond)-length(fixef(hurdle2_adult3.4)$cond), lower.tail=FALSE)
 
+## Can we include another interaction effect?
 hurdle2_adult5.1 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + employstatus +
     educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
@@ -538,6 +542,7 @@ hurdle2_adult5.11 <- glmmTMB(
 
 pchisq(43990.99-43977.57, df=length(fixef(hurdle2_adult5.9)$cond)-length(fixef(hurdle2_adult4.9)$cond), lower.tail=FALSE)
 
+## Can we include another interaction effect?
 hurdle2_adult6.1 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + employstatus +
     educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
@@ -640,6 +645,7 @@ hurdle2_adult6.10 <- glmmTMB(
 
 pchisq(43977.57-43967.44, df=length(fixef(hurdle2_adult6.1)$cond)-length(fixef(hurdle2_adult5.9)$cond), lower.tail=FALSE)
 
+## Can we include another interaction effect?
 hurdle2_adult7.1 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + employstatus +
     educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
