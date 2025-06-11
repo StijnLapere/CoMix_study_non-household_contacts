@@ -11,7 +11,7 @@ modeladults1 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+part_
                        control = gamlss.control(n.cyc = 1000)) 
 #39 iterations, AIC = 66829.9
 
-
+## Include interaction effect
 modeladults2.1 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+part_elevated_risk+
                            part_face_mask+part_symp_none+area_3_name+holiday+wd+
                            hhsize_cat+wavecount+part_gender+employstatus+educationmainearner+
@@ -194,7 +194,7 @@ modeladults2.15 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+pa
 
 pchisq(66829.9-66809.9, df=length(coef(modeladults2.6))-length(coef(modeladults1)), lower.tail=FALSE)
 
-
+## Can we include another interaction effect?
 modeladults3.1 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+part_elevated_risk+
                            part_face_mask+part_symp_none+area_3_name+holiday+wd+
                            hhsize_cat+wavecount+part_gender+employstatus+educationmainearner+
@@ -341,6 +341,7 @@ modeladults3.12 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+pa
 
 pchisq(66809.9-66798.8, df=length(coef(modeladults3.6))-length(coef(modeladults2.6)), lower.tail=FALSE)
 
+## Can we include another interaction effect?
 modeladults4.1 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+part_elevated_risk+
                            part_face_mask+part_symp_none+area_3_name+holiday+wd+
                            hhsize_cat+wavecount+part_gender+employstatus+educationmainearner+
@@ -475,6 +476,7 @@ modeladults4.11 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+pa
 
 pchisq(66798.8-66791.8, df=length(coef(modeladults4.4))-length(coef(modeladults3.6)), lower.tail=FALSE)
 
+## Can we include another interaction effect?
 modeladults5.1 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+part_elevated_risk+
                            part_face_mask+part_symp_none+area_3_name+holiday+wd+
                            hhsize_cat+wavecount+part_gender+employstatus+educationmainearner+
@@ -594,7 +596,7 @@ modeladults5.9 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+par
 
 pchisq(66791.8-66785.7, df=length(coef(modeladults5.6))-length(coef(modeladults4.4)), lower.tail=FALSE)
 
-
+## Can we include another interaction effect?
 modeladults6.1 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+part_elevated_risk+
                            part_face_mask+part_symp_none+area_3_name+holiday+wd+
                            hhsize_cat+wavecount+part_gender+employstatus+educationmainearner+
@@ -701,7 +703,6 @@ modeladults6.8 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+par
 
 ### NO SIGNIFICANT IMPROVEMENTS
 ## Can we remove main effects?
-
 modeladultsnosocialgroup <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_risk+
                            part_face_mask+part_symp_none+area_3_name+holiday+wd+
                            hhsize_cat+wavecount+part_gender+employstatus+educationmainearner+
@@ -806,6 +807,7 @@ modeladultsnoemploystatus <- gamlss(num_nonhouseh_cont ~ part_social_group_be+pa
                          control = gamlss.control(n.cyc = 1000))
 #39 iterations, AIC = 66780.4 --> Remove employstatus
 
+### Remove main effect of employmentstatus
 ## Can we remove another main effect?
 modeladultsnosocialgroup <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_risk+
                                      part_face_mask+part_symp_none+area_3_name+holiday+wd+
@@ -898,6 +900,7 @@ modeladultsnogender <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vac
                               control = gamlss.control(n.cyc = 1000))
 #41 iterations, AIC = 66778.3
 
+### Remove main effect of social group
 ## Can we remove another main effect?
 modeladultsnowd <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_risk+
                             part_face_mask+part_symp_none+area_3_name+holiday+
@@ -1031,7 +1034,7 @@ modeladultsadditive4 <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_risk
                                    control = gamlss.control(n.cyc = 1000))
 #42 iterations, AIC = 66823.5
 
-## MODEL FOR SIGMA
+## Build model for sigma
 modeladultssigma1 <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_risk+
                                      part_face_mask+part_symp_none+area_3_name+holiday+wd+
                                      hhsize_cat+wavecount+part_gender+educationmainearner+
@@ -1243,7 +1246,6 @@ modeladultssigma6.2 <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_risk+
 #99 iterations, AIC = 65951.8
 
 # NO LARGE IMPROVEMENTS ANYMORE
-
 ## Can we remove a main effect in the model for sigma?
 modeladultssigmanoelevrisk <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_risk+
                                 part_face_mask+part_symp_none+area_3_name+holiday+wd+
