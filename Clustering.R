@@ -2645,7 +2645,6 @@ ggplot(cluster_means_long[cluster_means_long$cluster == 1, ], aes(x = locatie, y
     axis.title.y = element_text(size = 18)                                       # y-axis label
   )
 
-
 ######## Clustering per occupation category ########
 #### Managers & Professionals ####
 ## Ward D2 with mean contacts per person accounted for number of waves ##
@@ -3878,6 +3877,190 @@ fviz_nbclust(clusteringdataset, FUN = hcut, method = "silhouette")
 
 ### 3 clusters ###
 k <- 3
+clusters <- cutree(hc, k = k)
+
+# Toevoegen aan data
+clusteringdataset$cluster <- as.factor(clusters)
+
+contactspercluser <- clusteringdataset %>%
+  group_by(cluster) %>%
+  summarise(across(where(is.numeric), mean))  # gemiddeld contactpatroon per cluster
+
+aantal_per_cluster <- clusteringdataset %>%
+  count(cluster, name = "aantal_personen")
+
+fviz_cluster(list(data = clust_scaled, cluster = clusters))
+
+# Zet wide naar long: locatie als variabele
+cluster_means_long <- contactspercluser %>%
+  pivot_longer(cols = -cluster, names_to = "locatie", values_to = "gem_aantal")
+
+cluster_means_long$locatie <- factor(cluster_means_long$locatie,
+                                     levels = c("Home", "Work", "School", "Leisure", "Transport", "Other"))
+
+# 3. Maak de lijnplot
+ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
+  geom_line(color = "steelblue", size = 1.2) +
+  geom_point(color = "steelblue", size = 2) +
+  facet_wrap(~ cluster) +
+  labs(
+    title = "Gemiddeld aantal contacten per locatie per cluster",
+    x = "Locatie",
+    y = "Gemiddeld aantal contacten"
+  ) +
+  theme_minimal()
+
+ggplot(cluster_means_long[cluster_means_long$cluster == 1, ], aes(x = locatie, y = gem_aantal, group = cluster)) +
+  geom_line(color = "steelblue", size = 1.2) +
+  geom_point(color = "steelblue", size = 2) +
+  labs(x = "Location",
+       y = "Mean number of contacts"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(size = 16, angle = -90, vjust = 0.5, hjust = 1),  # x-axis tick labels
+    axis.text.y = element_text(size = 16),                                       # y-axis tick labels
+    axis.title.x = element_text(size = 18),                                      # x-axis label
+    axis.title.y = element_text(size = 18)                                       # y-axis label
+  )
+
+
+#### Clustering based on symptomatic status (Yes/No) ####
+## Yes ##
+## Ward D2 with mean contacts per person accounted for number of waves ##
+clusteringdataset <- nonhouseholdcontacts_noage %>%
+  filter(!is.na(place), part_symp_none == "Yes") %>%
+  group_by(part_uid, wave, place) %>%
+  summarise(n_contacts = n(), .groups = "drop") %>%  # aantal contacten per persoon per wave per locatie
+  group_by(part_uid, place) %>%
+  summarise(mean_contacts = mean(n_contacts), .groups = "drop") %>%  # gemiddeld per locatie over alle waves
+  pivot_wider(names_from = place, values_from = mean_contacts, values_fill = 0)
+
+# Verwijder part_id voor clustering
+clust_input <- clusteringdataset %>% select(-part_uid)
+
+# Standaardiseren
+clust_scaled <- scale(clust_input)
+
+# Afstandsmatrix en clustering
+dist_matrix <- dist(clust_scaled)
+hc <- hclust(dist_matrix, method = "ward.D2")
+
+# Plot dendrogram
+plot(hc, main = "Dendrogram contactprofielen", xlab = "", sub = "")
+
+#Elbow plot
+fviz_nbclust(clusteringdataset, FUN = hcut, method = "wss")
+
+sil_scores <- c()
+
+# Test voor aantal clusters van 2 tot 10
+for (k in 2:10) {
+  clusters_k <- cutree(hc, k = k)
+  sil <- silhouette(clusters_k, dist = dist_matrix)
+  sil_scores[k] <- mean(sil[, 3])
+}
+
+plot(2:10, sil_scores[2:10], type = "b", pch = 19,
+     xlab = "Aantal clusters", ylab = "Gemiddelde silhouette width",
+     main = "Silhouette-analyse")
+
+fviz_nbclust(clusteringdataset, FUN = hcut, method = "silhouette")
+# 3 clusters
+
+### 3 clusters ###
+k <- 3
+clusters <- cutree(hc, k = k)
+
+# Toevoegen aan data
+clusteringdataset$cluster <- as.factor(clusters)
+
+contactspercluser <- clusteringdataset %>%
+  group_by(cluster) %>%
+  summarise(across(where(is.numeric), mean))  # gemiddeld contactpatroon per cluster
+
+aantal_per_cluster <- clusteringdataset %>%
+  count(cluster, name = "aantal_personen")
+
+fviz_cluster(list(data = clust_scaled, cluster = clusters))
+
+# Zet wide naar long: locatie als variabele
+cluster_means_long <- contactspercluser %>%
+  pivot_longer(cols = -cluster, names_to = "locatie", values_to = "gem_aantal")
+
+cluster_means_long$locatie <- factor(cluster_means_long$locatie,
+                                     levels = c("Home", "Work", "School", "Leisure", "Transport", "Other"))
+
+# 3. Maak de lijnplot
+ggplot(cluster_means_long, aes(x = locatie, y = gem_aantal, group = cluster)) +
+  geom_line(color = "steelblue", size = 1.2) +
+  geom_point(color = "steelblue", size = 2) +
+  facet_wrap(~ cluster) +
+  labs(
+    title = "Gemiddeld aantal contacten per locatie per cluster",
+    x = "Locatie",
+    y = "Gemiddeld aantal contacten"
+  ) +
+  theme_minimal()
+
+ggplot(cluster_means_long[cluster_means_long$cluster == 1, ], aes(x = locatie, y = gem_aantal, group = cluster)) +
+  geom_line(color = "steelblue", size = 1.2) +
+  geom_point(color = "steelblue", size = 2) +
+  labs(x = "Location",
+       y = "Mean number of contacts"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(size = 16, angle = -90, vjust = 0.5, hjust = 1),  # x-axis tick labels
+    axis.text.y = element_text(size = 16),                                       # y-axis tick labels
+    axis.title.x = element_text(size = 18),                                      # x-axis label
+    axis.title.y = element_text(size = 18)                                       # y-axis label
+  )
+
+## No ##
+## Ward D2 with mean contacts per person accounted for number of waves ##
+clusteringdataset <- nonhouseholdcontacts_noage %>%
+  filter(!is.na(place), part_symp_none == "No") %>%
+  group_by(part_uid, wave, place) %>%
+  summarise(n_contacts = n(), .groups = "drop") %>%  # aantal contacten per persoon per wave per locatie
+  group_by(part_uid, place) %>%
+  summarise(mean_contacts = mean(n_contacts), .groups = "drop") %>%  # gemiddeld per locatie over alle waves
+  pivot_wider(names_from = place, values_from = mean_contacts, values_fill = 0)
+
+# Verwijder part_id voor clustering
+clust_input <- clusteringdataset %>% select(-part_uid)
+
+# Standaardiseren
+clust_scaled <- scale(clust_input)
+
+# Afstandsmatrix en clustering
+dist_matrix <- dist(clust_scaled)
+hc <- hclust(dist_matrix, method = "ward.D2")
+
+# Plot dendrogram
+plot(hc, main = "Dendrogram contactprofielen", xlab = "", sub = "")
+
+#Elbow plot
+fviz_nbclust(clusteringdataset, FUN = hcut, method = "wss")
+
+sil_scores <- c()
+
+# Test voor aantal clusters van 2 tot 10
+for (k in 2:10) {
+  clusters_k <- cutree(hc, k = k)
+  sil <- silhouette(clusters_k, dist = dist_matrix)
+  sil_scores[k] <- mean(sil[, 3])
+}
+
+plot(2:10, sil_scores[2:10], type = "b", pch = 19,
+     xlab = "Aantal clusters", ylab = "Gemiddelde silhouette width",
+     main = "Silhouette-analyse")
+
+fviz_nbclust(clusteringdataset, FUN = hcut, method = "silhouette")
+# 4 clusters
+
+### 4 clusters ###
+k <- 4
 clusters <- cutree(hc, k = k)
 
 # Toevoegen aan data
