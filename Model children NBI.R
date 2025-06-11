@@ -32,7 +32,7 @@ modelchildren1cs <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_face_m
                             control = gamlss.control(n.cyc = 100)) 
 #18 iterations, AIC = 27273.8
 
-
+## Include interaction effect
 modelchildren2.1 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_face_mask+
                               area_3_name+holiday+wd+hhsize_cat+wavecount+part_face_mask:area_3_name+
                               pvc(day_number)+
@@ -73,7 +73,7 @@ modelchildren2.4 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_face_m
                            control = gamlss.control(n.cyc = 100)) 
 #17 iterations, AIC = 27153.5
 
-
+## Can we include another interaction effect?
 modelchildren3.1 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_face_mask+
                              area_3_name+holiday+wd+hhsize_cat+wavecount+holiday:area_3_name+
                              part_face_mask:area_3_name+
@@ -160,6 +160,7 @@ modelchildren2.2nowavecount <- gamlss(num_nonhouseh_cont ~ part_social_group_be+
                                         control = gamlss.control(n.cyc = 100)) 
 #18 iterations, AIC = 27175.7
 
+### Remove main effect of social group
 ## Can we remove another main effect?
 modelchildren2.2nofacemask <- gamlss(num_nonhouseh_cont ~ area_3_name+holiday+wd+hhsize_cat+wavecount+holiday:area_3_name+
                                           pvc(day_number)+
@@ -200,6 +201,7 @@ modelchildren2.2nowavecount <- gamlss(num_nonhouseh_cont ~ part_face_mask+
                                         control = gamlss.control(n.cyc = 100))
 #19 iterations, AIC = 27170.6
 
+### Remove main effect of hhsize
 ## Can we remove another main effect?
 modelchildren2.2nofacemask <- gamlss(num_nonhouseh_cont ~ area_3_name+holiday+wd+wavecount+holiday:area_3_name+
                                      pvc(day_number)+
@@ -231,9 +233,7 @@ modelchildren2.2nowavecount <- gamlss(num_nonhouseh_cont ~ part_face_mask+
 #17 iterations, AIC = 27166.4
 
 ## No further reductions
-
-
-### MODEL FOR SIGMA
+### Built model for sigma
 modelchildrensigma1 <- gamlss(num_nonhouseh_cont ~ part_face_mask+
                         area_3_name+holiday+wd+wavecount+holiday:area_3_name+
                         pvc(day_number)+
@@ -299,6 +299,7 @@ modelchildrensigma2nowavecount <- gamlss(num_nonhouseh_cont ~ part_face_mask+
                               control = gamlss.control(n.cyc = 100))
 #23 iterations, AIC = 26086.9
 
+### NO IMPROVEMENTS
 
 #### Final model: modelchildrensigma2
 finalmodelchildren <- modelchildrensigma2
