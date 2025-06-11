@@ -678,7 +678,7 @@ contact_extra <- contact_extra %>%
     cnt_age_group == "50-69" ~ "Adult",
     cnt_age_group == "60-69" ~ "Adult",
     cnt_age_group == "70-120" ~ "Elderly",
-    TRUE ~ NA_character_  # Handle missing or unexpected values
+    TRUE ~ NA_character_ 
   ))
 
 contact_extra_NAagegroup <- contact_extra %>%
@@ -707,7 +707,7 @@ contact_extra <- contact_extra %>%
     cnt_age_group == "70-120" ~ "Elderly",
     cnt_age == "15-19" ~ "Children",
     cnt_age == "65+" ~ "Elderly",
-    TRUE ~ NA_character_  # Handle missing or unexpected values
+    TRUE ~ NA_character_ 
   ))
 
 table(contact_extra$cnt_adult_cat,useNA = "ifany")
@@ -721,6 +721,7 @@ contacts_columns$wave <- as.factor(contacts_columns$wave)
 nonhouseholdcontacts <- nonhouseholdcontacts %>%
   left_join(contacts_columns, by = c("part_uid","wave","cont_id"))
 
+# Takes into account hierarchy of locations if more than 1 location is assigned to the contact
 nonhouseholdcontacts <- nonhouseholdcontacts %>%
   mutate(place = case_when(
     cnt_home == "TRUE" ~ "Home",
@@ -729,7 +730,7 @@ nonhouseholdcontacts <- nonhouseholdcontacts %>%
     cnt_leisure == "TRUE" ~ "Leisure",
     cnt_otherplace == "TRUE" ~ "Other",
     cnt_transport == "TRUE" ~ "Transport",
-    TRUE ~ NA_character_  # Handle missing or unexpected values
+    TRUE ~ NA_character_ 
   ))
 
 table(nonhouseholdcontacts$place,useNA="ifany")
