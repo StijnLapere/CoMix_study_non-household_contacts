@@ -664,15 +664,21 @@ finalmodelelderlyGPO <- modelelderlysigma3
 # mean =~ 0, variance =~ 1, skewness =~ 0, kurtosis =~ 3 
 # --> residuals are approximately normally distributed as they should be for an adequate model
 plot(finalmodelelderlyGPO)
-# mean = -0.0034, variance = 0.9366, skewness = 0.1099, kurtosis = 3.8662
 
 # 2) rqres.plot has to be used in addition to the function plot due to discrete distribution family
-rqres.plot(finalmodelelderly)
-rqres.plot(finalmodelelderly,2,all=FALSE)
-### What is this??
+rqres.plot(finalmodelelderlyGPO,6,type="QQ")
+saveres <- rqres.plot(finalmodelelderlyGPO,40,type="QQ",plot.type="all",all=FALSE)
 
+install.packages("matrixStats")
+library(matrixStats)
 
+row_medians <- rowMedians(saveres)
 
+install.packages("e1071")
+library(e1071)
+
+c(mean(row_medians),var(row_medians),skewness(row_medians),kurtosis(row_medians)+3)
+# mean = -0.0093, variance = 0.9438, skewness = 0.0892, kurtosis = 3.8500
 
 df <- data.frame(
   Covariate = c("Vacc No", "Vacc Yes","Elevated risk No","Elevated risk Yes","Face mask No", "Face mask Yes", "Symptoms No", "Symptoms Yes", 
