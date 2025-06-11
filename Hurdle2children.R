@@ -36,144 +36,200 @@ dispersion_glmer(hurdle2_children1wavecount)
 #Yes (2.96), so consider negative binomial distribution
 
 #Move to negative binomial distribution
-hurdle2_childrennb1 <- glmer.nb(
+library(glmmTMB)
+
+hurdle2_childrennb1 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + hhsize_cat +
     part_face_mask + part_social_group_be + 
     (1 | part_uid),
   data = logisticdataset_noagegender_childrennonhh,
-  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 99e5)))
-#AIC = 20322.84, -2Loglik = 20296.84, 11 param
+  family = truncated_nbinom2)
+#AIC = 18946.371, -2Loglik = 18920.371, 11 param
 
-hurdle2_childrennb1wavecount <- glmer.nb(
+hurdle2_childrennb1wavecount <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + hhsize_cat +
     part_face_mask + part_social_group_be + wavecount +
     (1 | part_uid),
   data = logisticdataset_noagegender_childrennonhh,
-  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 99e5)))
-#Failed to converge
+  family = truncated_nbinom2)
+#AIC = 18888.854, -2Loglik = 18848.854, 18 param
 
-hurdle2_childrennb1wavecountshort <- glmer.nb(
+hurdle2_childrennb1wavecountshort <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + hhsize_cat +
     part_face_mask + part_social_group_be + wavecountshort +
     (1 | part_uid),
   data = logisticdataset_noagegender_childrennonhh,
-  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 99e5)))
-#AIC = 20292.53, -2Loglik = 20262.53, 13 param
+  family = truncated_nbinom2)
+#AIC = 18904.349, -2Loglik = 18874.349, 13 param
 
-hurdle2_children2.1 <- glmer.nb(
+hurdle2_children2.1 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + hhsize_cat +
-    part_face_mask + part_social_group_be + wavecountshort + part_face_mask:area_3_name + 
+    part_face_mask + part_social_group_be + wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noagegender_childrennonhh,
-  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 99e5)))
-#AIC = 20294.23, -2Loglik = 20260.23, 15 param
+  family = truncated_nbinom2)
+#AIC = 18891.436, -2Loglik = 18847.436, 20 param
 
-hurdle2_children2.2 <- glmer.nb(
+hurdle2_children2.2 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + hhsize_cat +
-    part_face_mask + part_social_group_be + wavecountshort + holiday:area_3_name + 
+    part_face_mask + part_social_group_be + wavecount + holiday:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noagegender_childrennonhh,
-  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 99e5)))
-#AIC = 20295.47, -2Loglik = 20261.47, 15 param (warning)
+  family = truncated_nbinom2)
+#AIC = 18892.696, -2Loglik = 18848.696, 20 param
 
-hurdle2_children2.3 <- glmer.nb(
+hurdle2_children2.3 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + hhsize_cat +
-    part_face_mask + part_social_group_be + wavecountshort + hhsize_cat:area_3_name + 
+    part_face_mask + part_social_group_be + wavecount + hhsize_cat:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noagegender_childrennonhh,
-  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 99e5)))
-#AIC = 20295.87, -2Loglik = 20257.87, 17 param
+  family = truncated_nbinom2)
+#AIC = 18892.291, -2Loglik = 18844.291, 22 param
 
-hurdle2_children2.4 <- glmer.nb(
+hurdle2_children2.4 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + hhsize_cat +
-    part_face_mask + part_social_group_be + wavecountshort + holiday:wd + 
+    part_face_mask + part_social_group_be + wavecount + holiday:wd + 
     (1 | part_uid),
   data = logisticdataset_noagegender_childrennonhh,
-  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 99e5)))
-#AIC = 20291.45, -2Loglik = 20259.45, 14 param
+  family = truncated_nbinom2)
+#AIC = 18889.323, -2Loglik = 18847.323, 19 param
 
-pchisq(20262.53-20260.23, df=length(fixef(hurdle2_children2.1))-length(fixef(hurdle2_childrennb1wavecountshort)), lower.tail=FALSE)
-pchisq(20262.53-20261.47, df=length(fixef(hurdle2_children2.2))-length(fixef(hurdle2_childrennb1wavecountshort)), lower.tail=FALSE)
-pchisq(20262.53-20257.87, df=length(fixef(hurdle2_children2.3))-length(fixef(hurdle2_childrennb1wavecountshort)), lower.tail=FALSE)
-pchisq(20262.53-20259.45, df=length(fixef(hurdle2_children2.4))-length(fixef(hurdle2_childrennb1wavecountshort)), lower.tail=FALSE)
+pchisq(18848.854-18847.436, df=length(fixef(hurdle2_children2.1)$cond)-length(fixef(hurdle2_childrennb1wavecount)$cond), lower.tail=FALSE)
+pchisq(18848.854-18848.696, df=length(fixef(hurdle2_children2.2)$cond)-length(fixef(hurdle2_childrennb1wavecount)$cond), lower.tail=FALSE)
+pchisq(18848.854-18844.291, df=length(fixef(hurdle2_children2.3)$cond)-length(fixef(hurdle2_childrennb1wavecount)$cond), lower.tail=FALSE)
+pchisq(18848.854-18847.323, df=length(fixef(hurdle2_children2.4)$cond)-length(fixef(hurdle2_childrennb1wavecount)$cond), lower.tail=FALSE)
 
 ## NO SIGNIFICANT IMPROVEMENTS
 # Can we remove a main effect?
-hurdle2_childrennoarea <- glmer.nb(
+hurdle2_childrennoarea <- glmmTMB(
   num_contacts ~ holiday + wd + hhsize_cat +
-    part_face_mask + part_social_group_be + wavecountshort +
+    part_face_mask + part_social_group_be + wavecount +
     (1 | part_uid),
   data = logisticdataset_noagegender_childrennonhh,
-  control = glmerControl(optCtrl = list(maxfun = 99e10)))
-#AIC = 20321.44, -2Loglik = 20295.44, 11 param (warning)
+  family = truncated_nbinom2)
+#AIC = 18914.771, -2Loglik = 18878.771, 16 param
 
-hurdle2_childrennoholiday <- glmer.nb(
+hurdle2_childrennoholiday <- glmmTMB(
   num_contacts ~ area_3_name + wd + hhsize_cat +
-    part_face_mask + part_social_group_be + wavecountshort +
+    part_face_mask + part_social_group_be + wavecount +
     (1 | part_uid),
   data = logisticdataset_noagegender_childrennonhh,
-  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 99e10)))
-#AIC = 20359.20, -2Loglik = 20331.20, 12 param (warning)
+  family = truncated_nbinom2)
+#AIC = 18934.582, -2Loglik = 18896.582, 17 param
 
-hurdle2_childrennowd <- glmer.nb(
+hurdle2_childrennowd <- glmmTMB(
   num_contacts ~ area_3_name + holiday + hhsize_cat +
-    part_face_mask + part_social_group_be + wavecountshort +
+    part_face_mask + part_social_group_be + wavecount +
     (1 | part_uid),
   data = logisticdataset_noagegender_childrennonhh,
-  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 99e10)))
-#AIC = 20303.46, -2Loglik = 20275.46, 12 param (warning)
+  family = truncated_nbinom2)
+#AIC = 18890.474, -2Loglik = 18852.474, 17 param
 
-hurdle2_childrennohhsize <- glmer.nb(
+hurdle2_childrennohhsize <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd +
-    part_face_mask + part_social_group_be + wavecountshort +
+    part_face_mask + part_social_group_be + wavecount +
     (1 | part_uid),
   data = logisticdataset_noagegender_childrennonhh,
-  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 99e10)))
-#AIC = 20304.16, -2Loglik = 20278.16, 11 param (warning)
+  family = truncated_nbinom2)
+#AIC = 18891.598, -2Loglik = 18855.598, 186 param
 
-hurdle2_childrennofacemask <- glmer.nb(
+hurdle2_childrennofacemask <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + hhsize_cat +
-    part_social_group_be + wavecountshort +
+    part_social_group_be + wavecount +
     (1 | part_uid),
   data = logisticdataset_noagegender_childrennonhh,
-  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 99e10)))
-#AIC = 20309.61, -2Loglik = 20281.61, 12 param (warning)
+  family = truncated_nbinom2)
+#AIC = 18893.454, -2Loglik = 18855.454, 17 param
 
-hurdle2_childrennosocialgroup <- glmer.nb(
+hurdle2_childrennosocialgroup <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + hhsize_cat +
-    part_face_mask + wavecountshort +
+    part_face_mask + wavecount +
     (1 | part_uid),
   data = logisticdataset_noagegender_childrennonhh,
-  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 99e10)))
-#AIC = 20295.94, -2Loglik = 20271.94, 10 param (warning)
+  family = truncated_nbinom2)
+#AIC = 18883.168, -2Loglik = 18849.168, 15 param
 
-hurdle2_childrennowavecountshort <- glmer.nb(
+hurdle2_childrennowavecount <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + hhsize_cat +
     part_face_mask + part_social_group_be +
     (1 | part_uid),
   data = logisticdataset_noagegender_childrennonhh,
-  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 99e10)))
-#AIC = 20331.28, -2Loglik = 20305.28, 11 param (warning)
+  family = truncated_nbinom2)
+#AIC = 18946.371, -2Loglik = 18920.371, 11 param
 
-# Not converged, so stick to original model without interaction effects
+pchisq(18849.168-18848.854, df=length(fixef(hurdle2_childrennb1wavecount)$cond)-length(fixef(hurdle2_childrennosocialgroup)$cond), lower.tail=FALSE)
 
-## FINAL MODEL
-summary(hurdle2_childrennb1wavecountshort)
+hurdle2_childrennoarea <- glmmTMB(
+  num_contacts ~ holiday + wd + hhsize_cat +
+    part_face_mask + wavecount +
+    (1 | part_uid),
+  data = logisticdataset_noagegender_childrennonhh,
+  family = truncated_nbinom2)
+#AIC = 18909.518, -2Loglik = 18879.518, 13 param
+
+hurdle2_childrennoholiday <- glmmTMB(
+  num_contacts ~ area_3_name + wd + hhsize_cat +
+    part_face_mask + wavecount +
+    (1 | part_uid),
+  data = logisticdataset_noagegender_childrennonhh,
+  family = truncated_nbinom2)
+#AIC = 18928.816, -2Loglik = 18896.816, 14 param
+
+hurdle2_childrennowd <- glmmTMB(
+  num_contacts ~ area_3_name + holiday + hhsize_cat +
+    part_face_mask + wavecount +
+    (1 | part_uid),
+  data = logisticdataset_noagegender_childrennonhh,
+  family = truncated_nbinom2)
+#AIC = 18884.809, -2Loglik = 18852.809, 14 param
+
+hurdle2_childrennohhsize <- glmmTMB(
+  num_contacts ~ area_3_name + holiday + wd +
+    part_face_mask + wavecount +
+    (1 | part_uid),
+  data = logisticdataset_noagegender_childrennonhh,
+  family = truncated_nbinom2)
+#AIC = 18886.458, -2Loglik = 18856.458, 13 param
+
+hurdle2_childrennofacemask <- glmmTMB(
+  num_contacts ~ area_3_name + holiday + wd + hhsize_cat +
+    wavecount +
+    (1 | part_uid),
+  data = logisticdataset_noagegender_childrennonhh,
+  family = truncated_nbinom2)
+#AIC = 18887.848, -2Loglik = 18855.848, 14 param
+
+hurdle2_childrennowavecount <- glmmTMB(
+  num_contacts ~ area_3_name + holiday + wd + hhsize_cat +
+    part_face_mask +
+    (1 | part_uid),
+  data = logisticdataset_noagegender_childrennonhh,
+  family = truncated_nbinom2)
+#AIC = 18940.466, -2Loglik = 18920.466, 8 param
+
+pchisq(18852.809-18849.168, df=length(fixef(hurdle2_childrennosocialgroup)$cond)-length(fixef(hurdle2_childrennowd)$cond), lower.tail=FALSE)
+
+## Final model
+finalmodelhurdle2children <- hurdle2_childrennosocialgroup
+
+library(DHARMa)
+simulationoutput <- simulateResiduals(fittedModel = finalmodelhurdle2children, n=1000)
+plot(simulationoutput)
+testOutliers(simulationoutput, type = "bootstrap")
+testDispersion(simulationoutput)
 
 df <- data.frame(
   Covariate = c("Brussels Hoofdstede", "Vlaams Gewest", "Waals Gewest", 
                 "Holiday No", "Holiday Yes", "Weekday", "Weekend",
                 "Face mask No", "Face mask Yes", "hh size 2", "hh size 3", "hh size 4+",
-                "Social group 1&2", "Social group 3&4", "Social group 5&6", "Social group 7&8",
-                "1 wave", "2 waves", "3+ waves"),
-  Estimate = c(0, 0.542237, 0.056997, 0, -0.356526, 0, -0.119205,
-               0, 0.154681, 0, 0.403411, 0.258787,
-               0, 0.015140, -0.007048, -0.100814,
-               0, 0.053354, -0.266201),
-  SE = c(0, 0.155035, 0.162004, 0, 0.044815, 0, 0.054824,
-         0, 0.052325, 0, 0.144532, 0.137051,
-         0, 0.105816, 0.121361, 0.127159,
-         0, 0.078638, 0.062751)
+                "1 wave", "2 waves", "3 waves", "4 waves", "5 waves", "6 waves", "7 waves", "8+ waves"),
+  Estimate = c(0, 0.74603, 0.08782, 0, -0.47659, 0, -0.15833,
+               0, 0.20427, 0, 0.54145, 0.35535, 
+               0, 0.04055, -0.32295, -0.24859, -0.29275, -0.62410, -0.45236, -0.70276),
+  SE = c(0, 0.22098, 0.23125, 
+         0, 0.06766, 0, 0.08241, 
+         0, 0.07894, 0, 0.20310, 0.19210, 
+         0, 0.12141, 0.13182, 0.13532, 0.14991, 0.15497, 0.16261, 0.10692)
 )
 
 # Compute the relative number of contacts and confidence intervals
@@ -187,8 +243,7 @@ df <- df %>%
 covariate_order <- rev(c("Brussels Hoofdstede", "Vlaams Gewest", "Waals Gewest", 
                          "Holiday No", "Holiday Yes", "Weekday", "Weekend",
                          "Face mask No", "Face mask Yes", "hh size 2", "hh size 3", "hh size 4+",
-                         "Social group 1&2", "Social group 3&4", "Social group 5&6", "Social group 7&8",
-                         "1 wave", "2 waves", "3+ waves"))
+                         "1 wave", "2 waves", "3 waves", "4 waves", "5 waves", "6 waves", "7 waves", "8+ waves"))
 
 df$Covariate <- factor(df$Covariate, levels = covariate_order)
 
@@ -202,3 +257,5 @@ ggplot(df, aes(x = RelativeContacts, y = reorder(Covariate, RelativeContacts))) 
   labs(x = "Relative Number of having non-household contacts", y = "Covariates") +
   theme(axis.text.y = element_text(size = 10)) +
   scale_y_discrete(limits = covariate_order) # Ensure correct order
+
+
