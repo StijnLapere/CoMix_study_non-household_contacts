@@ -10,6 +10,18 @@ modelchildren1pvc <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_face_
                         control = gamlss.control(n.cyc = 100)) 
 #17 iterations, AIC = 27151.6
 
+finaldataset_noagegender_children2 <- finaldataset_noagegender_children
+finaldataset_noagegender_children2$hhsize_cat <- as.numeric(factor(finaldataset_noagegender_children2$hhsize_cat, levels = c("2", "3", "4+")))
+
+modelchildren1pvc2 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_face_mask+
+                              area_3_name+holiday+wd+hhsize_cat+wavecount+
+                              pvc(day_number)+
+                              re(random = ~1|part_uid),
+                            sigma.formula = ~1, 
+                            family = NBI, 
+                            data = na.omit(finaldataset_noagegender_children2),
+                            control = gamlss.control(n.cyc = 100)) 
+
 modelchildren1cs <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_face_mask+
                               area_3_name+holiday+wd+hhsize_cat+wavecount+
                               cs(day_number)+
@@ -315,7 +327,7 @@ plot(finalmodelchildren)
 
 # 2) rqres.plot has to be used in addition to the function plot due to discrete distribution family
 rqres.plot(finalmodelchildren)
-rqres.plot(finalmodelchildren,2,all=FALSE)
+rqres.plot(modelchildrenPO,howmany=40,type="QQ",plot.type="all",all=FALSE)
 ### What is this??
 
 
