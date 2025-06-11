@@ -1385,15 +1385,21 @@ finalmodeladultsGPO <- modeladultssigma5.3
 # mean =~ 0, variance =~ 1, skewness =~ 0, kurtosis =~ 3 
 # --> residuals are approximately normally distributed as they should be for an adequate model
 plot(finalmodeladultsGPO)
-# mean = -0.0101, variance = 0.9780, skewness = 0.0241, kurtosis = 3.4853
 
 # 2) rqres.plot has to be used in addition to the function plot due to discrete distribution family
-rqres.plot(finalmodeladultsGPO)
-rqres.plot(finalmodeladultsGPO,2,all=FALSE)
-### What is this??
+rqres.plot(finalmodeladultsGPO,6,type="QQ")
+saveres <- rqres.plot(finalmodeladultsGPO,40,type="QQ",plot.type="all",all=FALSE)
 
+install.packages("matrixStats")
+library(matrixStats)
 
+row_medians <- rowMedians(saveres)
 
+install.packages("e1071")
+library(e1071)
+
+c(mean(row_medians),var(row_medians),skewness(row_medians),kurtosis(row_medians)+3)
+# mean = -0.0140, variance = 0.9816, skewness = 0.0196, kurtosis = 3.4537
 
 df <- data.frame(
   Covariate = c("Vacc No", "Vacc Yes", "Elevated risk No", "Elevated risk Yes", "Face mask No", "Face mask Yes", "Symptoms No", "Symptoms Yes", 
