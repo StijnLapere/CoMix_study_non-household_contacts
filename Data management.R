@@ -446,6 +446,55 @@ finaldataset_noage_Elderly <- finaldataset_noage_Elderly %>%
                                            ifelse(hh_size == 2, "2","3+"))))
 finaldataset_noage_Elderly$hhsize_elderly <- relevel(finaldataset_noage_Elderly$hhsize_elderly, ref = "1")
 
+## Make dataset for SES-variables income and occupation
+table(finaldataset$part_occupation,useNA = 'ifany')
+table(finaldataset$part_income,useNA = 'ifany')
+SES_children <- finaldataset %>%
+  filter(adult_cat == "Children") %>% dplyr::select(part_uid,wave,num_nonhouseh_cont,part_occupation,part_income)
+table(SES_children$part_occupation,useNA = 'ifany')
+table(SES_children$part_income,useNA = 'ifany')
+SES_adults <- finaldataset %>%
+  filter(adult_cat == "Adult") %>% dplyr::select(part_uid,wave,num_nonhouseh_cont,part_occupation,part_income)
+table(SES_adults$part_occupation,useNA = 'ifany')
+table(SES_adults$part_income,useNA = 'ifany')
+SES_elderly <- finaldataset %>%
+  filter(adult_cat == "Elderly") %>% dplyr::select(part_uid,wave,num_nonhouseh_cont,part_occupation,part_income)
+table(SES_elderly$part_occupation,useNA = 'ifany')
+table(SES_elderly$part_income,useNA = 'ifany')
+# Not really a large difference in missing values across age categories
+# Therefore, the whole dataset will be analysed
+
+SES_dataset <- finaldataset %>% 
+  dplyr::select(part_uid,wave,num_nonhouseh_cont,part_occupation,part_income)
+
+ggplot(SES_dataset, aes(x = part_income)) +
+  geom_bar() +
+  coord_flip() +
+  theme_minimal()
+
+SES_dataset$income_cat <- with(SES_dataset, case_when(
+  part_income %in% c(" 0 -  549", " 550 -  999", " 1 000 -  1 299") ~ "Very low",
+  part_income %in% c(" 1 300 -  1 499", " 1 500 -  1 699", " 1 700 -  1 899") ~ "Low",
+  part_income %in% c(" 1 900 -  2 199", " 2 200 -  2 499", " 2 500 -  2 799", " 2 800 -  3 199") ~ "Middle",
+  part_income %in% c(" 3 200 -  3 699", " 3 700 -  4 499") ~ "High",
+  part_income %in% c(" 4 500 -  5 499", " 5 500 -  7 999", " 8 000 or more") ~ "Very high"
+))
+SES_dataset$income_cat <- factor(SES_dataset$income_cat, levels = c("Very low", "Low", "Middle", "High", "Very high"))
+table(SES_dataset$income_cat,useNA="ifany")
+
+table(SES_dataset$part_occupation,useNA = 'ifany')
+SES_dataset$occupation_cat <- with(SES_dataset, case_when(
+  part_occupation %in% c("liberal profession or profession for which qualification is required", "member of the general management senior executive responsible for 11 employees or more",
+                         "member of the general management senior executive responsible for 5 employees or less", "member of the general management senior executive responsible for 6 to 10 employees",
+                         "middle management that is not part of the general management responsible for 5 employees or less", "middle management that is not part of the general management responsible for 6 employees or more") ~ "Managers & Professionals",
+  part_occupation %in% c("other employee who mainly performs office work") ~ "Office employees",
+  part_occupation %in% c("other employee who does not do office work (eg teacher nurses ...)") ~ "Service employees",
+  part_occupation %in% c("non-skilled worker", "skilled worker") ~ "Manual workers",
+  part_occupation %in% c("craftsman trader with 5 employees or less", "farmer", "industrial wholesaler with 6 employees or more") ~ "Self-employed/Small business",
+  part_occupation %in% c("house man or housewife", "never worked", "pre-retired", "retired", "student", "unable for work", "unemployed") ~ "Not in labour force"
+  ))
+SES_dataset$occupation_cat <- factor(SES_dataset$occupation_cat, levels = c("Managers & Professionals", "Office employees", "Service employees", "Manual workers", "Self-employed/Small business", "Not in labour force"))
+table(SES_dataset$occupation_cat,useNA="ifany")
 
 ##########################################################
 ############ Dataset for logistic regression #############
@@ -820,3 +869,4 @@ nonhouseholdcontacts_noage_Elderly <- nonhouseholdcontacts_noage_Elderly %>%
 nonhouseholdcontacts_noage_Elderly$hhsize_elderly <- relevel(nonhouseholdcontacts_noage_Elderly$hhsize_elderly, ref = "1")
 
 
+## Make dataset for SES-variables income and occupation 
