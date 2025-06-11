@@ -115,7 +115,7 @@ ggplot(contactextrawaves_waveage, aes(x = wave)) +
 contactextrawaves_waveage$wave_num <- as.numeric(contactextrawaves_waveage$wave)
 
 library(readxl)
-
+## Add stringency values to Figure 2
 stringencyvalues <- read_excel("C:/Users/stijn/Documents/Stringency.xlsx", col_names = TRUE)
 stringencyvalues <- as.numeric(stringencyvalues[1,])
 stringencydf <- data.frame(wave_num = seq(min(contactextrawaves_waveage$wave_num), max(contactextrawaves_waveage$wave_num), length.out = length(stringencyvalues)), y_extra = stringencyvalues)
@@ -586,7 +586,7 @@ ggplot(contactextrawaves_wavesocialgroup, aes(x = wave)) +
   labs(x = "Wave", y = "Average non-household contacts", color = "Social Group") +
   theme_minimal()
 
-
+## Compute values for Table 2
 length(unique(finaldataset$part_uid[finaldataset$adult_cat=="Children"]))
 length(unique(finaldataset$part_uid[finaldataset$adult_cat=="Adult"]))
 length(unique(finaldataset$part_uid[finaldataset$adult_cat=="Elderly"]))
@@ -599,7 +599,6 @@ cntdata_summary <- finaldataset %>%
     total_children = sum(cnt_children, na.rm = TRUE),
     total_NA = sum(cnt_NA, na.rm = TRUE)
   )
-
 
 table(finaldataset$adult_cat)
 table(finaldataset$adult_cat)/39028
@@ -666,6 +665,7 @@ table(finaldataset$wavecount,finaldataset$adult_cat)/39028
 table(finaldataset$wavecount)
 table(finaldataset$wavecount)/39028
 
+## Construct Figure 1
 finaldataset %>%
   group_by(wavecount) %>%
   summarise(
@@ -723,6 +723,7 @@ nrow(high_zero_participants)/length(summary_table$prop_zero)
 
 library(ggplot2)
 
+## Construct Figure 3
 ggplot(summary_table, aes(x = prop_zero)) +
   geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
   labs(x = "Proportion of waves with zero non-household contacts",
@@ -762,6 +763,7 @@ ggplot(nonzero_contacts, aes(x = num_nonhouseh_cont)) +
   ) +
   theme_minimal()
 
+# How many nonzero nonhousehold contacts do participants with >90% have?
 high_zero_participants <- summary_table %>%
   filter(prop_zero >= 0.9)
 
@@ -775,6 +777,7 @@ table(nonzero_contacts$num_nonhouseh_cont)
 mean(nonzero_contacts$num_nonhouseh_cont)
 median(nonzero_contacts$num_nonhouseh_cont)
 
+# How many nonzero nonhousehold contacts do participants with <10% have?
 high_zero_participants <- summary_table %>%
   filter(prop_zero <= 0.1)
 
@@ -1885,7 +1888,6 @@ nonzero_contacts <- datahigheducation %>%
 table(nonzero_contacts$num_nonhouseh_cont)
 mean(nonzero_contacts$num_nonhouseh_cont)
 median(nonzero_contacts$num_nonhouseh_cont)
-
 
 
 ## Compute % of nonhousehold contacts per wave
