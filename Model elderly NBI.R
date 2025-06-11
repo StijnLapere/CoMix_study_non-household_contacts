@@ -831,15 +831,21 @@ modelelderlypoisson <- gamlss(num_nonhouseh_cont ~ part_vacc+
 # mean =~ 0, variance =~ 1, skewness =~ 0, kurtosis =~ 3 
 # --> residuals are approximately normally distributed as they should be for an adequate model
 plot(finalmodelelderly)
-# mean = -0.0080, variance = 0.8705, skewness = -0.0023, kurtosis = 3.2905
 
 # 2) rqres.plot has to be used in addition to the function plot due to discrete distribution family
-rqres.plot(finalmodelelderly)
-rqres.plot(finalmodelelderly,2,all=FALSE)
-### What is this??
+rqres.plot(finalmodelelderly,6,type="QQ")
+saveres <- rqres.plot(finalmodelelderly,40,type="QQ",plot.type="all",all=FALSE)
 
+install.packages("matrixStats")
+library(matrixStats)
 
+row_medians <- rowMedians(saveres)
 
+install.packages("e1071")
+library(e1071)
+
+c(mean(row_medians),var(row_medians),skewness(row_medians),kurtosis(row_medians)+3)
+# mean = -0.0088, variance = 0.8791, skewness = -0.0357, kurtosis = 3.3395
 
 df <- data.frame(
   Covariate = c("Vacc No", "Vacc Yes","Face mask No", "Face mask Yes", "Symptoms No", "Symptoms Yes", 
