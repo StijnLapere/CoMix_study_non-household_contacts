@@ -201,7 +201,7 @@ contactextrawaves_merged2 <- contactextrawaves_merged %>%
                                                                          ifelse(row_number() == 7, "7", ">=8"))))))))) %>% 
   arrange(part_uid) %>% group_by(part_uid) %>%  as.data.frame()
 
-contactextrawaves_merged2 <- contactextrawaves_merged %>%  
+contactextrawaves_merged2 <- contactextrawaves_merged2 %>%  
   group_by(part_uid) %>% 
   arrange(part_uid) %>%
   # add column wavecount which represents the n-th wave for each participant
@@ -423,13 +423,6 @@ finaldataset_NAsympnone <- finaldataset %>%
   filter(any(is.na(part_symp_none))) %>%
   dplyr::select(part_uid,wave,part_symp_none,adult_cat) %>%
   ungroup()
-
-# It is assumed that children have no symptoms
-finaldataset$part_symp_none[finaldataset$adult_cat == "Children" & is.na(finaldataset$part_symp_none)] <- "No"
-
-finaldataset <- finaldataset %>% 
-  group_by(part_uid) %>% 
-  fill("part_symp_none", .direction = "downup")
 
 colSums(is.na(finaldataset))
 
@@ -838,4 +831,5 @@ nonhouseholdcontacts_noage_Elderly <- nonhouseholdcontacts_noage_Elderly %>%
   mutate(hhsize_elderly = as.factor(ifelse(hh_size == 1, "1",
                                            ifelse(hh_size == 2, "2","3+"))))
 nonhouseholdcontacts_noage_Elderly$hhsize_elderly <- relevel(nonhouseholdcontacts_noage_Elderly$hhsize_elderly, ref = "1")
+
 
