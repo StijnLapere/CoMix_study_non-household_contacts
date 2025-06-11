@@ -323,15 +323,21 @@ modelchildrenPO <- gamlss(num_nonhouseh_cont ~ part_face_mask+
 # mean =~ 0, variance =~ 1, skewness =~ 0, kurtosis =~ 3 
 # --> residuals are approximately normally distributed as they should be for an adequate model
 plot(finalmodelchildren)
-# mean = -0.0253, variance = 0.9446, skewness = -0.1405, kurtosis = 2.9641
 
 # 2) rqres.plot has to be used in addition to the function plot due to discrete distribution family
-rqres.plot(finalmodelchildren)
-rqres.plot(modelchildrenPO,howmany=40,type="QQ",plot.type="all",all=FALSE)
-### What is this??
+rqres.plot(finalmodelchildren,6,type="QQ")
+saveres <- rqres.plot(finalmodelchildren,40,type="QQ",plot.type="all",all=FALSE)
 
+install.packages("matrixStats")
+library(matrixStats)
 
+row_medians <- rowMedians(saveres)
 
+install.packages("e1071")
+library(e1071)
+
+c(mean(row_medians),var(row_medians),skewness(row_medians),kurtosis(row_medians)+3)
+# mean = -0.0193, variance = 0.9363, skewness = -0.1468, kurtosis = 2.9583
 
 df <- data.frame(
   Covariate = c("Face mask No", "Face mask Yes", "Brussels Hoofdstede", "Vlaams Gewest", "Waals Gewest", 
