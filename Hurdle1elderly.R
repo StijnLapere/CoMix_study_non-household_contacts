@@ -28,6 +28,7 @@ library("blmeco")
 dispersion_glmer(glmm_elderly2)
 #No (0.96), so continue with binomial distribution
 
+## Include interaction effect
 glmm_elderlytotal2.1 <- glmer(
   any_nonhh_contact ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
@@ -150,6 +151,7 @@ glmm_elderlytotal2.12 <- glmer(
 
 pchisq(8496.042-8490.100, df=length(fixef(glmm_elderlytotal2.7))-length(fixef(glmm_elderly2)), lower.tail=FALSE)
 
+## Can we include another interaction effect?
 glmm_elderlytotal3.1 <- glmer(
   any_nonhh_contact ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
@@ -262,6 +264,7 @@ glmm_elderlytotal3.11 <- glmer(
 
 pchisq(8490.100-8484.057, df=length(fixef(glmm_elderlytotal3.3))-length(fixef(glmm_elderlytotal2.7)), lower.tail=FALSE)
 
+## Can we include another interaction effect?
 glmm_elderlytotal4.1 <- glmer(
   any_nonhh_contact ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
@@ -374,6 +377,7 @@ glmm_elderlytotal4.10 <- glmer(
 
 pchisq(8484.057-8476.818, df=length(fixef(glmm_elderlytotal4.5))-length(fixef(glmm_elderlytotal3.3)), lower.tail=FALSE)
 
+## Can we include another interaction effect?
 glmm_elderlytotal5.1 <- glmer(
   any_nonhh_contact ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
@@ -476,7 +480,6 @@ glmm_elderlytotal5.9 <- glmer(
 pchisq(8476.818-8473.062, df=length(fixef(glmm_elderlytotal5.2))-length(fixef(glmm_elderlytotal4.5)), lower.tail=FALSE)
 
 ## NO SIGNIFICANT IMPROVEMENTS ANYMORE
-
 # Can we remove a main effect?
 glmm_elderlytotalnoarea <- glmer(
   any_nonhh_contact ~ holiday + wd + educationmainearner + 
@@ -568,6 +571,8 @@ glmm_elderlytotalnowavecount <- glmer(
 
 pchisq(8479.468-8476.818, df=length(fixef(glmm_elderlytotal4.5))-length(fixef(glmm_elderlytotalnosocialgroup)), lower.tail=FALSE)
 
+### Remove main effect of social group
+## Can we remove another main effect?
 glmm_elderlytotalnoarea <- glmer(
   any_nonhh_contact ~ holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
@@ -649,7 +654,8 @@ pchisq(8479.921-8479.468, df=length(fixef(glmm_elderlytotalnosocialgroup))-lengt
 pchisq(8481.842-8479.468, df=length(fixef(glmm_elderlytotalnosocialgroup))-length(fixef(glmm_elderlytotalnoeducation)), lower.tail=FALSE)
 pchisq(8479.958-8479.468, df=length(fixef(glmm_elderlytotalnosocialgroup))-length(fixef(glmm_elderlytotalnosymptoms)), lower.tail=FALSE)
 
-
+### Remove main effect of wd
+## Can we remove another main effect?
 glmm_elderlytotalnoarea <- glmer(
   any_nonhh_contact ~ holiday + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
@@ -719,6 +725,8 @@ glmm_elderlytotalnowavecount <- glmer(
 pchisq(8482.285-8479.921, df=length(fixef(glmm_elderlytotalnowd))-length(fixef(glmm_elderlytotalnoeducation)), lower.tail=FALSE)
 pchisq(8480.398-8479.921, df=length(fixef(glmm_elderlytotalnowd))-length(fixef(glmm_elderlytotalnosymptoms)), lower.tail=FALSE)
 
+### Remove main effect of symptoms
+## Can we remove another main effect?
 glmm_elderlytotalnoarea <- glmer(
   any_nonhh_contact ~ holiday + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_gender +
@@ -776,6 +784,8 @@ glmm_elderlytotalnowavecount <- glmer(
 
 pchisq(8482.745-8480.398, df=length(fixef(glmm_elderlytotalnosymptoms))-length(fixef(glmm_elderlytotalnoeducation)), lower.tail=FALSE)
 
+### Remove main effect of education
+## Can we remove another main effect?
 glmm_elderlytotalnoarea <- glmer(
   any_nonhh_contact ~ holiday +  
     part_vacc + part_elevated_risk + part_face_mask + part_gender +
