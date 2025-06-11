@@ -62,6 +62,7 @@ hurdle2_childrennb1wavecountshort <- glmmTMB(
   family = truncated_nbinom2)
 #AIC = 18904.349, -2Loglik = 18874.349, 13 param
 
+## Include interaction effect
 hurdle2_children2.1 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + hhsize_cat +
     part_face_mask + part_social_group_be + wavecount + part_face_mask:area_3_name + 
@@ -159,6 +160,8 @@ hurdle2_childrennowavecount <- glmmTMB(
 
 pchisq(18849.168-18848.854, df=length(fixef(hurdle2_childrennb1wavecount)$cond)-length(fixef(hurdle2_childrennosocialgroup)$cond), lower.tail=FALSE)
 
+### Remove main effect of social group
+## Can we remove another main effect?
 hurdle2_childrennoarea <- glmmTMB(
   num_contacts ~ holiday + wd + hhsize_cat +
     part_face_mask + wavecount +
