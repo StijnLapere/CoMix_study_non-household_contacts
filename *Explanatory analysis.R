@@ -55,6 +55,8 @@ participantmaxcount <- finaldataset %>%
 
 print(participantmaxcount,n=32)
 
+sum(finaldataset$n_cnt_all<100)/nrow(finaldataset)
+
 ### Relative percentages of age category participation per wave
 contactextrawaves_waveage <- finaldataset %>%
   filter(!is.na(adult_cat)) %>%
@@ -69,6 +71,16 @@ contactextrawaves_waveage <- finaldataset %>%
   ) %>%
   group_by(wave) %>%
   mutate(percentage = count / sum(count) * 100) %>%
+  ungroup()
+
+finaldataset %>%
+  filter(!is.na(adult_cat)) %>%
+  group_by(adult_cat) %>%
+  summarise(
+    mean_nonhouseh_contacts = mean(num_nonhouseh_cont),
+    se_nonhouseh_contacts = sd(num_nonhouseh_cont) / sqrt(n()),
+    .groups = "drop"
+  ) %>%
   ungroup()
 
 mean_contacts_per_wave <- finaldataset %>%
@@ -102,6 +114,15 @@ ggplot(contactextrawaves_waveage, aes(x = wave)) +
 
 contactextrawaves_waveage$wave_num <- as.numeric(contactextrawaves_waveage$wave)
 
+library(readxl)
+
+stringencyvalues <- read_excel("C:/Users/stijn/Documents/Stringency.xlsx", col_names = TRUE)
+stringencyvalues <- as.numeric(stringencyvalues[1,])
+stringencydf <- data.frame(wave_num = seq(min(contactextrawaves_waveage$wave_num), max(contactextrawaves_waveage$wave_num), length.out = length(stringencyvalues)), y_extra = stringencyvalues)
+
+# Add rescaled y values to dataframe
+stringencydf$y_rescaled <- 12.5/100 * stringencydf$y_extra
+
 # Non-household contacts
 ggplot(contactextrawaves_waveage, aes(x = wave_num)) +  
   annotate("rect", xmin = 1, xmax = 2, ymin = -Inf, ymax = Inf, fill = "gray80", alpha = 0.5) +
@@ -117,10 +138,14 @@ ggplot(contactextrawaves_waveage, aes(x = wave_num)) +
               fill = "black", group = 1, alpha = 0.2) +
   geom_line(aes(y = total_mean_nonhouseh_contacts, group = 1),
             color = "black", size = 1) +
-  
+  geom_line(data = stringencydf, aes(x = wave_num, y = y_rescaled),
+            color = "orange", size = 1) + 
+  scale_y_continuous(
+    name = "Average number of non-household contacts",
+    sec.axis = sec_axis(trans = ~ (.)*100 /12.5 , name = "Stringency Index", breaks = seq(0, 100, 20))
+  ) +
   scale_x_continuous(breaks = contactextrawaves_waveage$wave_num,
                      labels = contactextrawaves_waveage$wave) +
-  
   labs(x = "Wave", y = "Average number of non-household contacts", color = "Age category", fill = "Age category") +
   theme_minimal()+
   theme(panel.grid.minor.x = element_blank())
@@ -155,6 +180,23 @@ contactextrawaves_12wave <- finaldataset %>%
 
 # Create stacked barplot
 ggplot(contactextrawaves_12wave, aes(x = wave, y = percentage, fill = numberparticipation)) +
+  geom_bar(stat = "identity", position = "fill") +
+  scale_y_continuous(labels = scales::percent_format(scale = 100)) +
+  labs(x = "Wave", y = "% of participants", fill = "Wave of participation") +
+  theme_minimal()
+
+contactextrawaves_12345678wave <- finaldataset %>%
+  filter(!is.na(adult_cat)) %>%
+  group_by(wave, wavecount) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(wave) %>%
+  mutate(percentage = count / sum(count) * 100)%>%
+  ungroup()
+
+contactextrawaves_12345678wave$wavecount <- factor(contactextrawaves_12345678wave$wavecount, levels = c("1", "2", "3", "4", "5", "6", "7", ">=8"))
+
+# Create stacked barplot
+ggplot(contactextrawaves_12345678wave, aes(x = wave, y = percentage, fill = wavecount)) +
   geom_bar(stat = "identity", position = "fill") +
   scale_y_continuous(labels = scales::percent_format(scale = 100)) +
   labs(x = "Wave", y = "% of participants", fill = "Wave of participation") +
@@ -585,6 +627,9 @@ table(finaldataset$hhsize_cat,finaldataset$adult_cat)
 table(finaldataset$hhsize_cat,finaldataset$adult_cat)/39028
 table(finaldataset$hhsize_cat)
 table(finaldataset$hhsize_cat)/39028
+finaldataset %>%
+  group_by(hhsize_cat) %>%
+  summarise(mean_value = mean(num_nonhouseh_cont, na.rm = TRUE))
 
 table(finaldataset$part_elevated_risk,finaldataset$adult_cat)
 table(finaldataset$part_elevated_risk,finaldataset$adult_cat)/39028
@@ -620,6 +665,15 @@ table(finaldataset$wavecount,finaldataset$adult_cat)
 table(finaldataset$wavecount,finaldataset$adult_cat)/39028
 table(finaldataset$wavecount)
 table(finaldataset$wavecount)/39028
+
+finaldataset %>%
+  group_by(wavecount) %>%
+  summarise(
+    mean_nonhouseh_contacts = mean(num_nonhouseh_cont),
+    se_nonhouseh_contacts = sd(num_nonhouseh_cont) / sqrt(n()),
+    .groups = "drop"
+  ) %>%
+  ungroup()
 
 hist(finaldataset$num_nonhouseh_cont[finaldataset$num_nonhouseh_cont <= 10],
      breaks = c(-0.5,0.5,1.5,2.5,3.5,4.5,5.5,6.5,7.5,8.5,9.5,10.5),
@@ -671,9 +725,7 @@ library(ggplot2)
 
 ggplot(summary_table, aes(x = prop_zero)) +
   geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
-  labs(
-    title = "Distribution of proportion of zero nonhousehold contacts per participant",
-    x = "Proportion of waves with 0 nonhousehold contacts",
+  labs(x = "Proportion of waves with zero non-household contacts",
     y = "Number of participants"
   ) +
   theme_minimal()
@@ -1873,4 +1925,249 @@ ggplot(contact_perc_wave, aes(x = wave, y = percentage, fill = contact_type)) +
   scale_y_continuous(labels = scales::percent_format(scale = 100)) +
   labs(x = "Wave", y = "% of participants", fill = "Number of contacts") +
   theme_minimal()
+
+
+
+#### SES ####
+table(finaldataset$part_occupation,useNA = 'ifany')
+table(finaldataset$part_income,useNA = 'ifany')
+SES_children <- finaldataset %>%
+  filter(adult_cat == "Children") %>% dplyr::select(part_uid,wave,num_nonhouseh_cont,part_occupation,part_income)
+table(SES_children$part_occupation,useNA = 'ifany')
+table(SES_children$part_income,useNA = 'ifany')
+SES_adults <- finaldataset %>%
+  filter(adult_cat == "Adult") %>% dplyr::select(part_uid,wave,num_nonhouseh_cont,part_occupation,part_income)
+table(SES_adults$part_occupation,useNA = 'ifany')
+table(SES_adults$part_income,useNA = 'ifany')
+SES_elderly <- finaldataset %>%
+  filter(adult_cat == "Elderly") %>% dplyr::select(part_uid,wave,num_nonhouseh_cont,part_occupation,part_income)
+table(SES_elderly$part_occupation,useNA = 'ifany')
+table(SES_elderly$part_income,useNA = 'ifany')
+# Not really a large difference in missing values across age categories
+# Therefore, the whole dataset will be analysed
+
+SES_dataset <- finaldataset %>% 
+  dplyr::select(part_uid,wave,num_nonhouseh_cont,part_occupation,part_income)
+
+ggplot(SES_dataset, aes(x = part_income)) +
+  geom_bar() +
+  coord_flip() +
+  theme_minimal()
+
+SES_dataset$income_cat <- with(SES_dataset, case_when(
+  part_income %in% c(" 0 -  549", " 550 -  999", " 1 000 -  1 299") ~ "Very low",
+  part_income %in% c(" 1 300 -  1 499", " 1 500 -  1 699", " 1 700 -  1 899") ~ "Low",
+  part_income %in% c(" 1 900 -  2 199", " 2 200 -  2 499", " 2 500 -  2 799", " 2 800 -  3 199") ~ "Middle",
+  part_income %in% c(" 3 200 -  3 699", " 3 700 -  4 499") ~ "High",
+  part_income %in% c(" 4 500 -  5 499", " 5 500 -  7 999", " 8 000 or more") ~ "Very high"
+))
+SES_dataset$income_cat <- factor(SES_dataset$income_cat, levels = c("Very low", "Low", "Middle", "High", "Very high"))
+table(SES_dataset$income_cat,useNA="ifany")
+
+table(SES_dataset$part_occupation,useNA = 'ifany')
+SES_dataset$occupation_cat <- with(SES_dataset, case_when(
+  part_occupation %in% c("liberal profession or profession for which qualification is required", "member of the general management senior executive responsible for 11 employees or more",
+                         "member of the general management senior executive responsible for 5 employees or less", "member of the general management senior executive responsible for 6 to 10 employees",
+                         "middle management that is not part of the general management responsible for 5 employees or less", "middle management that is not part of the general management responsible for 6 employees or more") ~ "Managers & Professionals",
+  part_occupation %in% c("other employee who mainly performs office work") ~ "Office employees",
+  part_occupation %in% c("other employee who does not do office work (eg teacher nurses ...)") ~ "Service employees",
+  part_occupation %in% c("non-skilled worker", "skilled worker") ~ "Manual workers",
+  part_occupation %in% c("craftsman trader with 5 employees or less", "farmer", "industrial wholesaler with 6 employees or more") ~ "Self-employed/Small business",
+  part_occupation %in% c("house man or housewife", "never worked", "pre-retired", "retired", "student", "unable for work", "unemployed") ~ "Not in labour force"
+  ))
+SES_dataset$occupation_cat <- factor(SES_dataset$occupation_cat, levels = c("Managers & Professionals", "Office employees", "Service employees", "Manual workers", "Self-employed/Small business", "Not in labour force"))
+table(SES_dataset$occupation_cat,useNA="ifany")
+
+SES_dataset %>%
+  filter(!is.na(income_cat)) %>%
+  group_by(income_cat) %>%
+  summarise(
+    mean_nonhouseh_contacts = mean(num_nonhouseh_cont),
+    se_nonhouseh_contacts = sd(num_nonhouseh_cont) / sqrt(n()),
+    .groups = "drop"
+  ) %>%
+  ungroup()
+
+contactextrawaves_waveincome <- SES_dataset %>%
+  filter(!is.na(income_cat)) %>%
+  group_by(wave, income_cat) %>%
+  summarise(count = n(), mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
+  group_by(wave) %>%
+  mutate(percentage = count / sum(count) * 100) %>%
+  ungroup() %>%
+  mutate(income_cat)
+
+contactextrawaves_waveincome <- contactextrawaves_waveincome %>%
+  left_join(mean_contacts_per_wave, by = "wave")
+
+# Non-household contacts
+ggplot(contactextrawaves_waveincome, aes(x = wave)) +
+  geom_line(aes(y = mean_nonhouseh_contacts, color = income_cat, group = income_cat), size = 1) +
+  geom_line(aes(y = total_mean_nonhouseh_contacts, group="Medium"), color = "black", size = 1) +
+  labs(x = "Wave", y = "Average non-household contacts", color = "Income") +
+  theme_minimal()
+
+SES_dataset %>%
+  filter(!is.na(occupation_cat)) %>%
+  group_by(occupation_cat) %>%
+  summarise(
+    mean_nonhouseh_contacts = mean(num_nonhouseh_cont),
+    se_nonhouseh_contacts = sd(num_nonhouseh_cont) / sqrt(n()),
+    .groups = "drop"
+  ) %>%
+  ungroup()
+
+contactextrawaves_waveoccupation <- SES_dataset %>%
+  filter(!is.na(occupation_cat)) %>%
+  group_by(wave, occupation_cat) %>%
+  summarise(count = n(), mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
+  group_by(wave) %>%
+  mutate(percentage = count / sum(count) * 100) %>%
+  ungroup() %>%
+  mutate(occupation_cat)
+
+contactextrawaves_waveoccupation <- contactextrawaves_waveoccupation %>%
+  left_join(mean_contacts_per_wave, by = "wave")
+
+# Non-household contacts
+ggplot(contactextrawaves_waveoccupation, aes(x = wave)) +
+  geom_line(aes(y = mean_nonhouseh_contacts, color = occupation_cat, group = occupation_cat), size = 1) +
+  geom_line(aes(y = total_mean_nonhouseh_contacts, group="Unemployed"), color = "black", size = 1) +
+  labs(x = "Wave", y = "Average non-household contacts", color = "Occupation") +
+  theme_minimal()
+
+finaldataset %>%
+  filter(!is.na(employstatus)) %>%
+  group_by(employstatus) %>%
+  summarise(
+    mean_nonhouseh_contacts = mean(num_nonhouseh_cont),
+    se_nonhouseh_contacts = sd(num_nonhouseh_cont) / sqrt(n()),
+    .groups = "drop"
+  ) %>%
+  ungroup()
+
+finaldataset %>%
+  filter(!is.na(educationmainearner)) %>%
+  group_by(educationmainearner) %>%
+  summarise(
+    mean_nonhouseh_contacts = mean(num_nonhouseh_cont),
+    se_nonhouseh_contacts = sd(num_nonhouseh_cont) / sqrt(n()),
+    .groups = "drop"
+  ) %>%
+  ungroup()
+
+
+#### Symptomatic status ####
+finaldataset %>%
+  filter(!is.na(part_symp_none)) %>%
+  group_by(part_symp_none) %>%
+  summarise(count = n(), mean_contacts = sum(n_cnt_all)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop")
+
+contactextrawaves_wavesymptom <- finaldataset %>%
+  filter(!is.na(part_symp_none)) %>%
+  group_by(wave, part_symp_none) %>%
+  summarise(count = n(), mean_contacts = sum(n_cnt_all)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
+  group_by(wave) %>%
+  mutate(percentage = count / sum(count) * 100) %>%
+  ungroup() %>%
+  mutate(part_symp_none) 
+
+contactextrawaves_wavesymptom <- contactextrawaves_wavesymptom %>%
+  left_join(mean_contacts_per_wave, by = "wave")
+
+# Non-household contacts
+ggplot(contactextrawaves_wavesymptom, aes(x = wave)) +
+  geom_line(aes(y = mean_nonhouseh_contacts, color = part_symp_none, group = part_symp_none), size = 1, linetype = "dashed") +
+  geom_line(aes(y = total_mean_nonhouseh_contacts, group="Yes"), color = "black", size = 1) +
+  labs(x = "Wave", y = "Average non-household contacts", color = "Symptomatic status") +
+  theme_minimal()
+
+#### Symptomatic status without children
+finaldataset %>%
+  filter(adult_cat != "Children", !is.na(part_symp_none)) %>%
+  group_by(part_symp_none) %>%
+  summarise(count = n(), mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, se = sd(num_nonhouseh_cont)/count, .groups = "drop")
+
+contactextrawaves_wavesymptom <- finaldataset %>%
+  filter(adult_cat != "Children") %>%
+  filter(!is.na(part_symp_none)) %>%
+  group_by(wave, part_symp_none) %>%
+  summarise(count = n(), mean_contacts = sum(n_cnt_all)/count, mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, .groups = "drop") %>%
+  group_by(wave) %>%
+  mutate(percentage = count / sum(count) * 100) %>%
+  ungroup() %>%
+  mutate(part_symp_none) 
+
+contactextrawaves_wavesymptom <- contactextrawaves_wavesymptom %>%
+  left_join(mean_contacts_per_wave, by = "wave")
+
+# Create stacked barplot
+ggplot(contactextrawaves_wavesymptom, aes(x = wave, y = percentage, fill = part_symp_none)) +
+  geom_bar(stat = "identity", position = "fill") +
+  scale_y_continuous(labels = scales::percent_format(scale = 100)) +
+  labs(x = "Wave", y = "% of participants", fill = "Symptomatic status") +
+  theme_minimal()
+
+# Non-household contacts
+ggplot(contactextrawaves_wavesymptom, aes(x = wave)) +
+  geom_line(aes(y = mean_nonhouseh_contacts, color = part_symp_none, group = part_symp_none), size = 1, linetype = "dashed") +
+  geom_line(aes(y = total_mean_nonhouseh_contacts, group="Yes"), color = "black", size = 1) +
+  labs(x = "Wave", y = "Average non-household contacts", color = "Symptomatic status") +
+  theme_minimal()
+
+finaldataset %>%
+  filter(adult_cat != "Children", !is.na(part_symp_none)) %>%
+  group_by(part_symp_none, wd) %>%
+  summarise(count = n(), mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, se = sd(num_nonhouseh_cont)/count, .groups = "drop")
+
+finaldataset %>%
+  filter(adult_cat != "Children", !is.na(part_symp_none)) %>%
+  group_by(part_symp_none, area_3_name) %>%
+  summarise(count = n(), mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, se = sd(num_nonhouseh_cont)/count, .groups = "drop")
+
+finaldataset %>%
+  filter(adult_cat != "Children", !is.na(part_symp_none)) %>%
+  group_by(part_symp_none, holiday) %>%
+  summarise(count = n(), mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, se = sd(num_nonhouseh_cont)/count, .groups = "drop")
+
+finaldataset %>%
+  filter(adult_cat != "Children", !is.na(part_symp_none)) %>%
+  group_by(part_symp_none, hhsize_cat) %>%
+  summarise(count = n(), mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, se = sd(num_nonhouseh_cont)/count, .groups = "drop")
+
+finaldataset %>%
+  filter(adult_cat != "Children", !is.na(part_symp_none)) %>%
+  group_by(part_symp_none, part_elevated_risk) %>%
+  summarise(count = n(), mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, se = sd(num_nonhouseh_cont)/count, .groups = "drop")
+
+finaldataset %>%
+  filter(adult_cat != "Children", !is.na(part_symp_none)) %>%
+  group_by(part_symp_none, part_face_mask) %>%
+  summarise(count = n(), mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, se = sd(num_nonhouseh_cont)/count, .groups = "drop")
+
+finaldataset %>%
+  filter(adult_cat != "Children", !is.na(part_symp_none)) %>%
+  group_by(part_symp_none, part_vacc) %>%
+  summarise(count = n(), mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, se = sd(num_nonhouseh_cont)/count, .groups = "drop")
+
+finaldataset %>%
+  filter(adult_cat != "Children", !is.na(part_symp_none)) %>%
+  group_by(part_symp_none, part_gender) %>%
+  summarise(count = n(), mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, se = sd(num_nonhouseh_cont)/count, .groups = "drop")
+
+finaldataset %>%
+  filter(adult_cat != "Children", !is.na(part_symp_none)) %>%
+  group_by(part_symp_none, part_social_group_be) %>%
+  summarise(count = n(), mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, se = sd(num_nonhouseh_cont)/count, .groups = "drop")
+
+finaldataset %>%
+  filter(adult_cat != "Children", !is.na(part_symp_none)) %>%
+  group_by(part_symp_none, employstatus) %>%
+  summarise(count = n(), mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, se = sd(num_nonhouseh_cont)/count, .groups = "drop")
+
+finaldataset %>%
+  filter(adult_cat != "Children", !is.na(part_symp_none)) %>%
+  group_by(part_symp_none, educationmainearner) %>%
+  summarise(count = n(), mean_nonhouseh_contacts = sum(num_nonhouseh_cont)/count, se = sd(num_nonhouseh_cont)/count, .groups = "drop")
+
 
