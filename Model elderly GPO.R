@@ -498,7 +498,7 @@ modelelderlyadditive4 <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_ris
 #69 iterations, AIC = 23852.4
 
 ## NO SIGNIFICANT IMPROVEMENTS
-### Built model for sigma
+### Build model for sigma
 modelelderlysigma1 <- gamlss(num_nonhouseh_cont ~ part_vacc+part_elevated_risk+
                                       part_face_mask+part_symp_none+area_3_name+holiday+wd+
                                       hhsize_elderly+wavecount+part_gender+part_vacc:part_face_mask+
