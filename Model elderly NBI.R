@@ -1,5 +1,18 @@
 library(gamlss)
 
+modelelderlyPoisson <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+part_elevated_risk+
+                          part_face_mask+part_symp_none+area_3_name+holiday+wd+
+                          hhsize_elderly+wavecount+part_gender+
+                          pvc(day_number, by = part_vacc:part_symp_none)+
+                          re(random = ~1|part_uid),
+                        sigma.formula = ~1, 
+                        family = PO, 
+                        data = na.omit(finaldataset_noage_Elderly),
+                        control = gamlss.control(n.cyc = 100)) 
+
+modelelderlyPoisson$G.deviance / modelelderlyPoisson$df.residual
+#Clear overdispersion
+
 modelelderly1 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_vacc+part_elevated_risk+
                       part_face_mask+part_symp_none+area_3_name+holiday+wd+
                       hhsize_elderly+wavecount+part_gender+
