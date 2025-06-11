@@ -1396,22 +1396,28 @@ rqres.plot(finalmodeladultsGPO,2,all=FALSE)
 
 
 df <- data.frame(
-  Covariate = c("Vacc No", "Vacc Yes","Face mask No", "Face mask Yes", "Symptoms No", "Symptoms Yes", 
+  Covariate = c("Vacc No", "Vacc Yes", "Elevated risk No", "Elevated risk Yes", "Face mask No", "Face mask Yes", "Symptoms No", "Symptoms Yes", 
                 "Brussels Hoofdstede", "Vlaams Gewest", "Waals Gewest", "Holiday No", "Holiday Yes", 
-                "Weekday", "Weekend","hh size 1", "hh size 2", "hh size 3+", 
+                "Weekday", "Weekend","hh size 1", "hh size 2", "hh size 3", "hh size 4+", 
                 "1 wave", "2 waves", "3 waves", "4 waves", "5 waves", "6 waves", "7 waves", "8+ waves",
-                "Female", "Male",
-                "Brussels Hoofdstede : Face mask No","Vlaams Gewest : Face mask Yes", "Waals Gewest : Face mask Yes"),
-  Estimate = c(0, 0.680269, 0, 0.381465, 0, -0.055198,
-               0, 0.022659, -0.178782, 0, -0.087728,
-               0, 0.039205, 0, 0.086573, -0.102832,
-               0, 0.113599, -0.236361, -0.008987, -0.297800, -0.350155, -0.313700, -0.454829,
-               0, -0.121366, 0, 0.247030, 0.074947),
-  SE = c(0, 0.040828, 0, 0.147819, 0, 0.034870,
-         0, 0.144789, 0.150306, 0, 0.028112, 
-         0, 0.028273, 0, 0.028278, 0.070358,
-         0, 0.068108, 0.072007, 0.075504, 0.077364, 0.079367, 0.078051, 0.052329,
-         0, 0.026794, 0, 0.153813, 0.161006)
+                "Female", "Male", "Low education", "Medium education", "High education",
+                "Vacc No : Face mask No", "Vacc Yes : Face mask Yes", "Vacc No : Brussels Hoofdstede", "Vacc Yes : Vlaams Gewest", "Vacc Yes : Waals Gewest",
+                "Vacc No : Medium education", "Vacc Yes : Low education", "Vacc Yes : High education",
+                "Face mask No : Brussels Hoofdstede", "Face mask Yes : Vlaams Gewest", "Face mask Yes : Waals Gewest"),
+  Estimate = c(0, 0.50959, 0, -0.03406, 0, 1.03867, 0, -0.13302,
+               0, 0.81612, 0.15820, 0, -0.03810,
+               0, 0.07055, 0, -0.02354, -0.09835, -0.23687,
+               0, -0.07609, -0.32101, -0.52213, -0.54687, -0.52876, -0.80727, -0.75989,
+               0, -0.08706, -0.26977, 0, -0.01767,
+               0, -0.19186, 0, -0.26141, -0.05482,
+               0, 0.11738, 0.22694, 0, 0.04995, -0.07278),
+  SE = c(0, 0.08994, 0, 0.02197, 0, 0.10926, 0, 0.02046,
+         0, 0.11211, 0.11760, 0, 0.02121,
+         0, 0.02406, 0, 0.02347, 0.02911, 0.03058,
+         0, 0.04255, 0.04656, 0.04756, 0.04804, 0.05220, 0.05049, 0.02746,
+         0, 0.01950, 0.05188, 0, 0.03562,
+         0, 0.05581, 0, 0.07321, 0.07815,
+         0, 0.06476, 0.04413, 0, 0.10869, 0.11353)
 )
 
 # Compute the relative number of contacts and confidence intervals
@@ -1422,12 +1428,14 @@ df <- df %>%
     UpperCI = exp(Estimate + 1.96 * SE)
   )
 
-covariate_order <- rev(c("Vacc No", "Vacc Yes","Face mask No", "Face mask Yes", "Symptoms No", "Symptoms Yes", 
+covariate_order <- rev(c("Vacc No", "Vacc Yes", "Elevated risk No", "Elevated risk Yes", "Face mask No", "Face mask Yes", "Symptoms No", "Symptoms Yes", 
                          "Brussels Hoofdstede", "Vlaams Gewest", "Waals Gewest", "Holiday No", "Holiday Yes", 
-                         "Weekday", "Weekend","hh size 1", "hh size 2", "hh size 3+", 
+                         "Weekday", "Weekend","hh size 1", "hh size 2", "hh size 3", "hh size 4+", 
                          "1 wave", "2 waves", "3 waves", "4 waves", "5 waves", "6 waves", "7 waves", "8+ waves",
-                         "Female", "Male",
-                         "Brussels Hoofdstede : Face mask No","Vlaams Gewest : Face mask Yes", "Waals Gewest : Face mask Yes"))
+                         "Female", "Male", "Low education", "Medium education", "High education",
+                         "Vacc No : Face mask No", "Vacc Yes : Face mask Yes", "Vacc No : Brussels Hoofdstede", "Vacc Yes : Vlaams Gewest", "Vacc Yes : Waals Gewest",
+                         "Vacc No : Medium education", "Vacc Yes : Low education", "Vacc Yes : High education",
+                         "Face mask No : Brussels Hoofdstede", "Face mask Yes : Vlaams Gewest", "Face mask Yes : Waals Gewest"))
 
 df$Covariate <- factor(df$Covariate, levels = covariate_order)
 
