@@ -17,5 +17,5 @@ This master's thesis will analyse the non-household contacts from wave 12-43 in 
 * **Hurdle 2 children:** code for the hurdle 2 model for the number of (non-zero) non-household contacts (Negative Binomial GLMM) for children.
 * **Hurdle 2 elderly:** code for the hurdle 2 model for the number of (non-zero) non-household contacts (Negative Binomial GLMM) for elderly.
 * **Clustering:** code for the clustering task of this thesis:
-  * Make contact profiles based on locations of contacts.
+  * Make contact profiles based on locations of contacts per age/income/occupation category.
   * Clustering of participants based on demographic characteristics.
