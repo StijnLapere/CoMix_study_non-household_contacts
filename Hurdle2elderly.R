@@ -40,635 +40,644 @@ dispersion_glmer(hurdle2_elderly1wavecount)
 #Yes (1.70), so consider negative binomial distribution
 
 #Move to negative binomial distribution
-hurdle2_elderlynb1 <- glmer.nb(
+library(glmmTMB)
+
+hurdle2_elderlynb1 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5)))
-#AIC = 18126.379, -2Loglik = 18088.379, 17 param
+  family = truncated_nbinom2)
+#AIC = 15411.937, -2Loglik = 15373.937, 17 param
 
-hurdle2_elderlynb1wavecount <- glmer.nb(
+hurdle2_elderlynb1wavecount <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount +
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
-#AIC = 18118.381, -2Loglik = 18066.381, 24 param
+  family = truncated_nbinom2)
+#AIC = 15398.44, -2Loglik = 15346.44, 24 param
 
-hurdle2_elderlynb1wavecountshort <- glmer.nb(
+hurdle2_elderlynb1wavecountshort <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecountshort +
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 9e5)))
-#AIC = 18116.993, -2Loglik = 18074.993, 19 param
+  family = truncated_nbinom2)
+#AIC = 15400.423, -2Loglik = 15358.423, 19 param
 
-hurdle2_elderly2.1 <- glmer.nb(
+hurdle2_elderly2.1 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_social_group_be:part_vacc + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18120.822, -2Loglik = 18062.822, 27 param
+  family = truncated_nbinom2)
+#AIC = 15400.859, -2Loglik = 15342.859, 27 param
 
-hurdle2_elderly2.2 <- glmer.nb(
+hurdle2_elderly2.2 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_vacc:part_elevated_risk + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18120.163, -2Loglik = 18066.163, 25 param
+  family = truncated_nbinom2)
+#AIC = 15400.437, -2Loglik = 15346.437, 25 param
 
-hurdle2_elderly2.3 <- glmer.nb(
+hurdle2_elderly2.3 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_vacc:part_face_mask + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18117.965, -2Loglik = 18063.965, 25 param
+  family = truncated_nbinom2)
+#AIC = 15399.046, -2Loglik = 15345.046, 25 param
 
-hurdle2_elderly2.4 <- glmer.nb(
+hurdle2_elderly2.4 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_vacc:part_symp_none + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18120.381, -2Loglik = 18066.381, 25 param
+  family = truncated_nbinom2)
+#AIC = 15400.197, -2Loglik = 15346.197, 25 param
 
-hurdle2_elderly2.5 <- glmer.nb(
+hurdle2_elderly2.5 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_vacc:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18120.804, -2Loglik = 18064.804, 26 param
+  family = truncated_nbinom2)
+#AIC = 15398.774, -2Loglik = 15342.774, 26 param
 
-hurdle2_elderly2.6 <- glmer.nb(
+hurdle2_elderly2.6 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_vacc:hhsize_elderly + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18121.00, -2Loglik = 18065.00, 26 param
+  family = truncated_nbinom2)
+#AIC = 15401.008, -2Loglik = 15345.008, 26 param
 
-hurdle2_elderly2.7 <- glmer.nb(
+hurdle2_elderly2.7 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_elevated_risk:part_face_mask + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18118.890, -2Loglik = 18064.890, 25 param
+  family = truncated_nbinom2)
+#AIC = 15399.248, -2Loglik = 15345.248, 25 param
 
-hurdle2_elderly2.8 <- glmer.nb(
+hurdle2_elderly2.8 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_face_mask:part_symp_none + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18119.363, -2Loglik = 18065.363, 25 param
+  family = truncated_nbinom2)
+#AIC = 15399.565, -2Loglik = 15345.565, 25 param
 
-hurdle2_elderly2.9 <- glmer.nb(
+hurdle2_elderly2.9 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18112.704, -2Loglik = 18056.704, 26 param --> BEST IMPROVEMENT
+  family = truncated_nbinom2)
+#AIC = 15394.341, -2Loglik = 15338.341, 26 param --> BEST IMPROVEMENT
 
-hurdle2_elderly2.10 <- glmer.nb(
+hurdle2_elderly2.10 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + area_3_name:holiday + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18121.821, -2Loglik = 18065.821, 26 param
+  family = truncated_nbinom2)
+#AIC = 15401.979, -2Loglik = 15345.979, 26 param
 
-hurdle2_elderly2.11 <- glmer.nb(
+hurdle2_elderly2.11 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + area_3_name:hhsize_elderly + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18122.183, -2Loglik = 18062.183, 28 param
+  family = truncated_nbinom2)
+#AIC = 15402.854, -2Loglik = 15342.854, 28 param
 
-hurdle2_elderly2.12 <- glmer.nb(
+hurdle2_elderly2.12 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + holiday:wd + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18120.18, -2Loglik = 18066.18, 25 param
+  family = truncated_nbinom2)
+#AIC = 15400.394, -2Loglik = 15346.394, 25 param
 
-pchisq(18066.381-18056.704, df=length(fixef(hurdle2_elderly2.9))-length(fixef(hurdle2_elderlynb1wavecount)), lower.tail=FALSE)
+pchisq(15346.44-15338.341, df=length(fixef(hurdle2_elderly2.9)$cond)-length(fixef(hurdle2_elderlynb1wavecount)$cond), lower.tail=FALSE)
 
-hurdle2_elderly3.1 <- glmer.nb(
+hurdle2_elderly3.1 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_face_mask:area_3_name + part_social_group_be:part_vacc + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18115.166, -2Loglik = 18053.166, 29 param
+  family = truncated_nbinom2)
+#AIC = 15396.931, -2Loglik = 15334.931, 29 param
 
-hurdle2_elderly3.2 <- glmer.nb(
+hurdle2_elderly3.2 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_face_mask:area_3_name + part_vacc:part_elevated_risk + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18114.505, -2Loglik = 18056.505, 27 param
+  family = truncated_nbinom2)
+#AIC = 15396.336, -2Loglik = 15338.336, 27 param
 
-hurdle2_elderly3.3 <- glmer.nb(
+hurdle2_elderly3.3 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_face_mask:area_3_name + part_vacc:part_face_mask + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18111.442, -2Loglik = 18053.442, 27 param
+  family = truncated_nbinom2)
+#AIC = 15394.186, -2Loglik = 15336.186, 27 param
 
-hurdle2_elderly3.4 <- glmer.nb(
+hurdle2_elderly3.4 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_face_mask:area_3_name + part_vacc:part_symp_none + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18114.702, -2Loglik = 18056.702, 27 param
+  family = truncated_nbinom2)
+#AIC = 15396.149, -2Loglik = 15338.149, 27 param
 
-hurdle2_elderly3.5 <- glmer.nb(
+hurdle2_elderly3.5 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_face_mask:area_3_name + part_vacc:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18115.036, -2Loglik = 18055.036, 28 param
+  family = truncated_nbinom2)
+#AIC = 15394.415, -2Loglik = 15334.415, 28 param
 
-hurdle2_elderly3.6 <- glmer.nb(
+hurdle2_elderly3.6 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_face_mask:area_3_name + part_vacc:hhsize_elderly + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18115.312, -2Loglik = 18055.312, 28 param
+  family = truncated_nbinom2)
+#AIC = 15396.735, -2Loglik = 15336.735, 28 param
 
-hurdle2_elderly3.7 <- glmer.nb(
+hurdle2_elderly3.7 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_face_mask:area_3_name + part_elevated_risk:part_face_mask + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18113.368, -2Loglik = 18055.368, 27 param
+  family = truncated_nbinom2)
+#AIC = 15395.403, -2Loglik = 15337.403, 27 param
 
-hurdle2_elderly3.8 <- glmer.nb(
+hurdle2_elderly3.8 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_face_mask:area_3_name + part_face_mask:part_symp_none + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18114.172, -2Loglik = 18056.172, 27 param
+  family = truncated_nbinom2)
+#AIC = 15395.706, -2Loglik = 15337.706, 27 param
 
-hurdle2_elderly3.9 <- glmer.nb(
+hurdle2_elderly3.9 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_face_mask:area_3_name + area_3_name:holiday + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18116.063, -2Loglik = 18056.063, 28 param
+  family = truncated_nbinom2)
+#AIC = 15397.850, -2Loglik = 15337.850, 28 param
 
-hurdle2_elderly3.10 <- glmer.nb(
+hurdle2_elderly3.10 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_face_mask:area_3_name + area_3_name:hhsize_elderly + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18116.855, -2Loglik = 18052.855, 30 param
+  family = truncated_nbinom2)
+#AIC = 15399.149, -2Loglik = 15335.149, 30 param
 
-hurdle2_elderly3.11 <- glmer.nb(
+hurdle2_elderly3.11 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_face_mask:area_3_name + holiday:wd + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18114.461, -2Loglik = 18056.461, 27 param
+  family = truncated_nbinom2)
+#AIC = 15396.276, -2Loglik = 15338.276, 27 param
 
-pchisq(18056.704-18053.442, df=length(fixef(hurdle2_elderly3.3))-length(fixef(hurdle2_elderly2.9)), lower.tail=FALSE)
+pchisq(15338.341-15336.186, df=length(fixef(hurdle2_elderly3.3)$cond)-length(fixef(hurdle2_elderly2.9)$cond), lower.tail=FALSE)
 
-## NO SIGNIFICANT IMPROVEMENTS ANYMORE
-
+## NO SIGNIFICANT IMPROVEMENTS
 # Can we remove a main effect?
-
-hurdle2_elderlynoholiday <- glmer.nb(
+hurdle2_elderlynoholiday <- glmmTMB(
   num_contacts ~ area_3_name + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18113.170, -2Loglik = 18059.170, 25 param
+  family = truncated_nbinom2)
+#AIC = 15397.855, -2Loglik = 15343.855, 25 param
 
-hurdle2_elderlynowd <- glmer.nb(
+hurdle2_elderlynowd <- glmmTMB(
   num_contacts ~ area_3_name + holiday + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18121.733, -2Loglik = 18067.733, 25 param
+  family = truncated_nbinom2)
+#AIC = 15401.678, -2Loglik = 15347.678, 25 param
 
-hurdle2_elderlyeducation <- glmer.nb(
+hurdle2_elderlynoeducation <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18109.050, -2Loglik = 18057.050, 24 param
+  family = truncated_nbinom2)
+#AIC = 15390.591, -2Loglik = 15338.591, 24 param
 
-hurdle2_elderlynovacc <- glmer.nb(
+hurdle2_elderlynovacc <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18177.396, -2Loglik = 18123.396, 25 param
+  family = truncated_nbinom2)
+#AIC = 15459.305, -2Loglik = 15405.305, 25 param
 
-hurdle2_elderlynoelevrisk <- glmer.nb(
+hurdle2_elderlynoelevrisk <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18126.20, -2Loglik = 18072.20, 25 param
+  family = truncated_nbinom2)
+#AIC = 15405.777, -2Loglik = 15351.777, 25 param
 
-hurdle2_elderlynosymp <- glmer.nb(
+hurdle2_elderlynosymptoms <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_gender +
     part_social_group_be + hhsize_elderly + wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18115.711, -2Loglik = 18061.711, 25 param
+  family = truncated_nbinom2)
+#AIC = 15396.030, -2Loglik = 15342.030, 25 param
 
-hurdle2_elderlynogender <- glmer.nb(
+hurdle2_elderlynogender <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none +
     part_social_group_be + hhsize_elderly + wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18113.30, -2Loglik = 18059.30, 25 param
+  family = truncated_nbinom2)
+#AIC = 15394.626, -2Loglik = 15340.626, 25 param
 
-hurdle2_elderlynosocialgroup <- glmer.nb(
+hurdle2_elderlynosocialgroup <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     hhsize_elderly + wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18108.158, -2Loglik = 18058.158, 23 param
+  family = truncated_nbinom2)
+#AIC = 15389.168, -2Loglik = 15339.168, 23 param
 
-hurdle2_elderlynohhsize <- glmer.nb(
+hurdle2_elderlynohhsize <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18108.965, -2Loglik = 18056.965, 24 param
+  family = truncated_nbinom2)
+#AIC = 15390.386, -2Loglik = 15338.386, 24 param
 
-hurdle2_elderlynowavecount <- glmer.nb(
+hurdle2_elderlynowavecount <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_social_group_be + hhsize_elderly + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18120.893, -2Loglik = 18078.893, 19 param
+  family = truncated_nbinom2)
+#AIC = 15408.166, -2Loglik = 15366.166, 19 param
 
-pchisq(18057.050-18056.704, df=length(fixef(hurdle2_elderly2.9))-length(fixef(hurdle2_elderlyeducation)), lower.tail=FALSE)
-pchisq(18058.158-18056.704, df=length(fixef(hurdle2_elderly2.9))-length(fixef(hurdle2_elderlynosocialgroup)), lower.tail=FALSE)
+pchisq(15339.168-15338.341, df=length(fixef(hurdle2_elderly2.9)$cond)-length(fixef(hurdle2_elderlynosocialgroup)$cond), lower.tail=FALSE)
 
-hurdle2_elderlynoholiday <- glmer.nb(
-  num_contacts ~ area_3_name + wd + 
+hurdle2_elderlynoholiday <- glmmTMB(
+  num_contacts ~ area_3_name + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
-    part_social_group_be + hhsize_elderly + wavecount + part_face_mask:area_3_name + 
+    hhsize_elderly + wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18109.506, -2Loglik = 18059.506, 23 param
+  family = truncated_nbinom2)
+#AIC = 15392.623, -2Loglik = 15344.623, 22 param
 
-hurdle2_elderlynowd <- glmer.nb(
-  num_contacts ~ area_3_name + holiday + 
+hurdle2_elderlynowd <- glmmTMB(
+  num_contacts ~ area_3_name + holiday + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
-    part_social_group_be + hhsize_elderly + wavecount + part_face_mask:area_3_name + 
+    hhsize_elderly + wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18118.065, -2Loglik = 18068.065, 23 param
+  family = truncated_nbinom2)
+#AIC = 15396.487, -2Loglik = 15348.487, 22 param
 
-hurdle2_elderlynovacc <- glmer.nb(
-  num_contacts ~ area_3_name + holiday + wd + 
-    part_elevated_risk + part_face_mask + part_symp_none + part_gender +
-    part_social_group_be + hhsize_elderly + wavecount + part_face_mask:area_3_name + 
-    (1 | part_uid),
-  data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18173.755, -2Loglik = 18123.755, 23 param
-
-hurdle2_elderlynoelevrisk <- glmer.nb(
-  num_contacts ~ area_3_name + holiday + wd + 
-    part_vacc + part_face_mask + part_symp_none + part_gender +
-    part_social_group_be + hhsize_elderly + wavecount + part_face_mask:area_3_name + 
-    (1 | part_uid),
-  data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18122.512, -2Loglik = 18072.512, 23 param
-
-hurdle2_elderlynosymp <- glmer.nb(
-  num_contacts ~ area_3_name + holiday + wd + 
-    part_vacc + part_elevated_risk + part_face_mask + part_gender +
-    part_social_group_be + hhsize_elderly + wavecount + part_face_mask:area_3_name + 
-    (1 | part_uid),
-  data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18112.00, -2Loglik = 18062.00, 23 param
-
-hurdle2_elderlynogender <- glmer.nb(
-  num_contacts ~ area_3_name + holiday + wd + 
-    part_vacc + part_elevated_risk + part_face_mask + part_symp_none +
-    part_social_group_be + hhsize_elderly + wavecount + part_face_mask:area_3_name + 
-    (1 | part_uid),
-  data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18109.658, -2Loglik = 18059.658, 23 param
-
-hurdle2_elderlynosocialgroup <- glmer.nb(
+hurdle2_elderlynoeducation <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     hhsize_elderly + wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18104.225, -2Loglik = 18058.225, 21 param
+  family = truncated_nbinom2)
+#AIC = 15385.211, -2Loglik = 15339.211, 21 param
 
-hurdle2_elderlynohhsize <- glmer.nb(
-  num_contacts ~ area_3_name + holiday + wd + 
-    part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
-    part_social_group_be + wavecount + part_face_mask:area_3_name + 
-    (1 | part_uid),
-  data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18105.299, -2Loglik = 18057.299, 22 param
-
-hurdle2_elderlynowavecount <- glmer.nb(
-  num_contacts ~ area_3_name + holiday + wd + 
-    part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
-    part_social_group_be + hhsize_elderly + part_face_mask:area_3_name + 
-    (1 | part_uid),
-  data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18117.171, -2Loglik = 18079.171, 17 param
-
-pchisq(18058.225-18057.050, df=length(fixef(hurdle2_elderlyeducation))-length(fixef(hurdle2_elderlynosocialgroup)), lower.tail=FALSE)
-
-hurdle2_elderlynoholiday <- glmer.nb(
-  num_contacts ~ area_3_name + wd + 
-    part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
-    hhsize_elderly + wavecount + part_face_mask:area_3_name + 
-    (1 | part_uid),
-  data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18104.642, -2Loglik = 18060.642, 20 param
-
-hurdle2_elderlynowd <- glmer.nb(
-  num_contacts ~ area_3_name + holiday + 
-    part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
-    hhsize_elderly + wavecount + part_face_mask:area_3_name + 
-    (1 | part_uid),
-  data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18113.234, -2Loglik = 18069.234, 20 param
-
-hurdle2_elderlynovacc <- glmer.nb(
-  num_contacts ~ area_3_name + holiday + wd + 
+hurdle2_elderlynovacc <- glmmTMB(
+  num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     hhsize_elderly + wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18169.011, -2Loglik = 18125.011, 20 param
+  family = truncated_nbinom2)
+#AIC = 15454.24, -2Loglik = 15406.24, 22 param
 
-hurdle2_elderlynoelevrisk <- glmer.nb(
-  num_contacts ~ area_3_name + holiday + wd + 
+hurdle2_elderlynoelevrisk <- glmmTMB(
+  num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_face_mask + part_symp_none + part_gender +
     hhsize_elderly + wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18118.112, -2Loglik = 18074.112, 20 param
+  family = truncated_nbinom2)
+#AIC = 15400.78, -2Loglik = 15352.78, 22 param
 
-hurdle2_elderlynosympnone <- glmer.nb(
-  num_contacts ~ area_3_name + holiday + wd + 
+hurdle2_elderlynosymptoms <- glmmTMB(
+  num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_gender +
     hhsize_elderly + wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18107.130, -2Loglik = 18063.130, 20 param
+  family = truncated_nbinom2)
+#AIC = 15390.753, -2Loglik = 15342.753, 22 param
 
-hurdle2_elderlynogender <- glmer.nb(
-  num_contacts ~ area_3_name + holiday + wd + 
+hurdle2_elderlynogender <- glmmTMB(
+  num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none +
     hhsize_elderly + wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18104.890, -2Loglik = 18060.890, 20 param
+  family = truncated_nbinom2)
+#AIC = 15389.496, -2Loglik = 15341.496, 22 param
 
-hurdle2_elderlynohhsize <- glmer.nb(
-  num_contacts ~ area_3_name + holiday + wd + 
+hurdle2_elderlynohhsize <- glmmTMB(
+  num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18100.504, -2Loglik = 18058.504, 19 param
+  family = truncated_nbinom2)
+#AIC = 15385.194, -2Loglik = 15339.194, 21 param
 
-hurdle2_elderlynowavecount <- glmer.nb(
-  num_contacts ~ area_3_name + holiday + wd + 
+hurdle2_elderlynowavecount <- glmmTMB(
+  num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     hhsize_elderly + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18112.259, -2Loglik = 18080.259, 14 param
+  family = truncated_nbinom2)
+#AIC = 15402.90, -2Loglik = 15366.90, 16 param
 
-pchisq(18058.504-18058.225, df=length(fixef(hurdle2_elderlynosocialgroup))-length(fixef(hurdle2_elderlynohhsize)), lower.tail=FALSE)
+pchisq(15339.211-15339.168, df=length(fixef(hurdle2_elderlynosocialgroup)$cond)-length(fixef(hurdle2_elderlynoeducation)$cond), lower.tail=FALSE)
+pchisq(15339.194-15339.168, df=length(fixef(hurdle2_elderlynosocialgroup)$cond)-length(fixef(hurdle2_elderlynohhsize)$cond), lower.tail=FALSE)
 
-hurdle2_elderlynoholiday <- glmer.nb(
+hurdle2_elderlynoholiday <- glmmTMB(
+  num_contacts ~ area_3_name + wd + educationmainearner + 
+    part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
+    wavecount + part_face_mask:area_3_name + 
+    (1 | part_uid),
+  data = logisticdataset_noage_Elderlynonhh,
+  family = truncated_nbinom2)
+#AIC = 15388.655, -2Loglik = 15344.655, 20 param
+
+hurdle2_elderlynowd <- glmmTMB(
+  num_contacts ~ area_3_name + holiday + educationmainearner + 
+    part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
+    wavecount + part_face_mask:area_3_name + 
+    (1 | part_uid),
+  data = logisticdataset_noage_Elderlynonhh,
+  family = truncated_nbinom2)
+#AIC = 15392.498, -2Loglik = 15348.498, 20 param
+
+hurdle2_elderlynoeducation <- glmmTMB(
+  num_contacts ~ area_3_name + holiday + wd + 
+    part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
+    wavecount + part_face_mask:area_3_name + 
+    (1 | part_uid),
+  data = logisticdataset_noage_Elderlynonhh,
+  family = truncated_nbinom2)
+#AIC = 15381.236, -2Loglik = 15339.236, 19 param
+
+hurdle2_elderlynovacc <- glmmTMB(
+  num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
+    part_elevated_risk + part_face_mask + part_symp_none + part_gender +
+    wavecount + part_face_mask:area_3_name + 
+    (1 | part_uid),
+  data = logisticdataset_noage_Elderlynonhh,
+  family = truncated_nbinom2)
+#AIC = 15450.287, -2Loglik = 15406.287, 20 param
+
+hurdle2_elderlynoelevrisk <- glmmTMB(
+  num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
+    part_vacc + part_face_mask + part_symp_none + part_gender +
+    wavecount + part_face_mask:area_3_name + 
+    (1 | part_uid),
+  data = logisticdataset_noage_Elderlynonhh,
+  family = truncated_nbinom2)
+#AIC = 15396.796, -2Loglik = 15352.796, 20 param
+
+hurdle2_elderlynosymptoms <- glmmTMB(
+  num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
+    part_vacc + part_elevated_risk + part_face_mask + part_gender +
+    wavecount + part_face_mask:area_3_name + 
+    (1 | part_uid),
+  data = logisticdataset_noage_Elderlynonhh,
+  family = truncated_nbinom2)
+#AIC = 15386.790, -2Loglik = 15342.790, 20 param
+
+hurdle2_elderlynogender <- glmmTMB(
+  num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
+    part_vacc + part_elevated_risk + part_face_mask + part_symp_none +
+    wavecount + part_face_mask:area_3_name + 
+    (1 | part_uid),
+  data = logisticdataset_noage_Elderlynonhh,
+  family = truncated_nbinom2)
+#AIC = 15385.534, -2Loglik = 15341.534, 20 param
+
+hurdle2_elderlynowavecount <- glmmTMB(
+  num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
+    part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
+    part_face_mask:area_3_name + 
+    (1 | part_uid),
+  data = logisticdataset_noage_Elderlynonhh,
+  family = truncated_nbinom2)
+#AIC = 15398.908, -2Loglik = 15366.908, 14 param
+
+pchisq(15339.236-15339.194, df=length(fixef(hurdle2_elderlynohhsize)$cond)-length(fixef(hurdle2_elderlynoeducation)$cond), lower.tail=FALSE)
+
+hurdle2_elderlynoholiday <- glmmTMB(
   num_contacts ~ area_3_name + wd + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18100.905, -2Loglik = 18060.905, 18 param
+  family = truncated_nbinom2)
+#AIC = 15384.698, -2Loglik = 15344.698, 18 param
 
-hurdle2_elderlynowd <- glmer.nb(
+hurdle2_elderlynowd <- glmmTMB(
   num_contacts ~ area_3_name + holiday + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18109.474, -2Loglik = 18069.474, 18 param
+  family = truncated_nbinom2)
+#AIC = 15388.536, -2Loglik = 15348.536, 18 param
 
-hurdle2_elderlynovacc <- glmer.nb(
+hurdle2_elderlynovacc <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + 
     part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18165.190, -2Loglik = 18125.190, 18 param
+  family = truncated_nbinom2)
+#AIC = 15446.335, -2Loglik = 15406.335, 18 param
 
-hurdle2_elderlynoelevrisk <- glmer.nb(
+hurdle2_elderlynoelevrisk <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + 
     part_vacc + part_face_mask + part_symp_none + part_gender +
     wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18114.304, -2Loglik = 18074.304, 18 param
+  family = truncated_nbinom2)
+#AIC = 15392.898, -2Loglik = 15352.898, 18 param
 
-hurdle2_elderlynosymp <- glmer.nb(
+hurdle2_elderlynosymptoms <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + 
     part_vacc + part_elevated_risk + part_face_mask + part_gender +
     wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18103.446, -2Loglik = 18063.446, 18 param
+  family = truncated_nbinom2)
+#AIC = 15382.834, -2Loglik = 15342.834, 18 param
 
-hurdle2_elderlynogender <- glmer.nb(
+hurdle2_elderlynogender <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none +
     wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18101.239, -2Loglik = 18061.239, 18 param
+  family = truncated_nbinom2)
+#AIC = 15381.551, -2Loglik = 15341.551, 18 param
 
-hurdle2_elderlynowavecount <- glmer.nb(
+hurdle2_elderlynowavecount <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
     part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18108.536, -2Loglik = 18080.536, 12 param
+  family = truncated_nbinom2)
+#AIC = 15394.94, -2Loglik = 15366.94, 12 param
 
-pchisq(18060.905-18058.504, df=length(fixef(hurdle2_elderlynohhsize))-length(fixef(hurdle2_elderlynoholiday)), lower.tail=FALSE)
+pchisq(15341.551-15339.236, df=length(fixef(hurdle2_elderlynoeducation)$cond)-length(fixef(hurdle2_elderlynogender)$cond), lower.tail=FALSE)
 
-hurdle2_elderlynowd <- glmer.nb(
-  num_contacts ~ area_3_name + 
-    part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
-    wavecount + part_face_mask:area_3_name + 
-    (1 | part_uid),
-  data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18100.905, -2Loglik = 18060.905, 17 param
-
-hurdle2_elderlynovacc <- glmer.nb(
-  num_contacts ~ area_3_name + wd + 
-    part_elevated_risk + part_face_mask + part_symp_none + part_gender +
-    wavecount + part_face_mask:area_3_name + 
-    (1 | part_uid),
-  data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18100.905, -2Loglik = 18060.905, 17 param
-
-hurdle2_elderlynoelevrisk <- glmer.nb(
-  num_contacts ~ area_3_name + wd + 
-    part_vacc + part_face_mask + part_symp_none + part_gender +
-    wavecount + part_face_mask:area_3_name + 
-    (1 | part_uid),
-  data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18100.905, -2Loglik = 18060.905, 17 param
-
-hurdle2_elderlynosympnone <- glmer.nb(
-  num_contacts ~ area_3_name + wd + 
-    part_vacc + part_elevated_risk + part_face_mask + part_gender +
-    wavecount + part_face_mask:area_3_name + 
-    (1 | part_uid),
-  data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18100.905, -2Loglik = 18060.905, 17 param
-
-hurdle2_elderlynogender <- glmer.nb(
+hurdle2_elderlynoholiday <- glmmTMB(
   num_contacts ~ area_3_name + wd + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none +
     wavecount + part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18100.905, -2Loglik = 18060.905, 17 param
+  family = truncated_nbinom2)
+#AIC = 15385.066, -2Loglik = 15347.066, 17 param
 
-hurdle2_elderlynowavecount <- glmer.nb(
-  num_contacts ~ area_3_name + wd + 
-    part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
+hurdle2_elderlynowd <- glmmTMB(
+  num_contacts ~ area_3_name + holiday + 
+    part_vacc + part_elevated_risk + part_face_mask + part_symp_none +
+    wavecount + part_face_mask:area_3_name + 
+    (1 | part_uid),
+  data = logisticdataset_noage_Elderlynonhh,
+  family = truncated_nbinom2)
+#AIC = 15388.823, -2Loglik = 15350.823, 17 param
+
+hurdle2_elderlynovacc <- glmmTMB(
+  num_contacts ~ area_3_name + holiday + wd + 
+    part_elevated_risk + part_face_mask + part_symp_none +
+    wavecount + part_face_mask:area_3_name + 
+    (1 | part_uid),
+  data = logisticdataset_noage_Elderlynonhh,
+  family = truncated_nbinom2)
+#AIC = 15446.631, -2Loglik = 15408.631, 17 param
+
+hurdle2_elderlynoelevrisk <- glmmTMB(
+  num_contacts ~ area_3_name + holiday + wd + 
+    part_vacc + part_face_mask + part_symp_none +
+    wavecount + part_face_mask:area_3_name + 
+    (1 | part_uid),
+  data = logisticdataset_noage_Elderlynonhh,
+  family = truncated_nbinom2)
+#AIC = 15393.391, -2Loglik = 15355.391, 17 param
+
+hurdle2_elderlynosymptoms <- glmmTMB(
+  num_contacts ~ area_3_name + holiday + wd + 
+    part_vacc + part_elevated_risk + part_face_mask +
+    wavecount + part_face_mask:area_3_name + 
+    (1 | part_uid),
+  data = logisticdataset_noage_Elderlynonhh,
+  family = truncated_nbinom2)
+#AIC = 15383.10, -2Loglik = 15345.10, 17 param
+
+hurdle2_elderlynowavecount <- glmmTMB(
+  num_contacts ~ area_3_name + holiday + wd + 
+    part_vacc + part_elevated_risk + part_face_mask + part_symp_none +
     part_face_mask:area_3_name + 
     (1 | part_uid),
   data = logisticdataset_noage_Elderlynonhh,
-  control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-#AIC = 18100.905, -2Loglik = 18060.905, 11 param
+  family = truncated_nbinom2)
+#AIC = 15394.988, -2Loglik = 15368.988, 11 param
 
-summary(hurdle2_elderlynoholiday)
+pchisq(15345.10-15341.551, df=length(fixef(hurdle2_elderlynogender)$cond)-length(fixef(hurdle2_elderlynosymptoms)$cond), lower.tail=FALSE)
+
+## Final model
+finalmodelhurdle2elderly <- hurdle2_elderlynogender
+
+library(DHARMa)
+simulationoutput <- simulateResiduals(fittedModel = finalmodelhurdle2elderly, n=1000)
+plot(simulationoutput)
+testOutliers(simulationoutput, type = "bootstrap")
+testDispersion(simulationoutput)
 
 df <- data.frame(
-  Covariate = c("Brussels Hoofdstede", "Vlaams Gewest", "Waals Gewest", "Weekday", "Weekend",
+  Covariate = c("Brussels Hoofdstede", "Vlaams Gewest", "Waals Gewest", 
+                "Holiday No", "Holiday Yes", "Weekday", "Weekend",
                 "Vacc No", "Vacc Yes", "Elevated risk No", "Elevated risk Yes", "Symptoms No", "Symptoms Yes", "Face mask No", "Face mask Yes",
-                "Female", "Male",
                 "1 wave", "2 waves", "3 waves", "4 waves", "5 waves", "6 waves", "7 waves", "8+ waves",
                 "Brussels Hoofdstede : Face mask No", "Vlaams Gewest : Face mask Yes", "Waals Gewest : Face mask Yes"),
-  Estimate = c(0, -0.11786, -0.16078, 0, 0.09402,
-               0, 0.37398, 0, -0.01886, 0, -0.10209, 0, -0.15608, 
-               0, 0.10750, 
-               0, 0.13766, -0.14302, 0.04346, -0.03530, -0.06019, -0.08839, -0.13990,
-               0, 0.37543, 0.17343),
-  SE = c(0, 0.17368, 0.18159, 0, 0.02956,
-         0, 0.05122, 0, 0.04740, 0, 0.04782, 0, 0.14842, 
-         0, 0.06402, 
-         0, 0.07519, 0.08230, 0.08027, 0.08397, 0.08429, 0.08480, 0.06473,
-         0, 0.15532, 0.16390)
+  Estimate = c(0, -0.19596, -0.31952, 
+               0, 0.12024, 0, 0.15602, 
+               0, 0.64438, 0, -0.01671, 0, -0.15582, 0, -0.34694, 
+               0, 0.16023, -0.30736, 0.02683, -0.14388, -0.20608, -0.24968, -0.35092, 
+               0, 0.66708, 0.41927),
+  SE = c(0, 0.29991, 0.31388, 
+         0, 0.05137, 0, 0.05131, 
+         0, 0.08850, 0, 0.08213, 0, 0.08292, 0, 0.25826, 
+         0, 0.13101, 0.14189, 0.13849, 0.14363, 0.14566, 0.14726, 0.11279,
+         0, 0.26995, 0.28472)
 )
 
 # Compute the relative number of contacts and confidence intervals
@@ -679,9 +688,9 @@ df <- df %>%
     UpperCI = exp(Estimate + 1.96 * SE)
   )
 
-covariate_order <- rev(c("Brussels Hoofdstede", "Vlaams Gewest", "Waals Gewest", "Weekday", "Weekend",
+covariate_order <- rev(c("Brussels Hoofdstede", "Vlaams Gewest", "Waals Gewest", 
+                         "Holiday No", "Holiday Yes", "Weekday", "Weekend",
                          "Vacc No", "Vacc Yes", "Elevated risk No", "Elevated risk Yes", "Symptoms No", "Symptoms Yes", "Face mask No", "Face mask Yes",
-                         "Female", "Male",
                          "1 wave", "2 waves", "3 waves", "4 waves", "5 waves", "6 waves", "7 waves", "8+ waves",
                          "Brussels Hoofdstede : Face mask No", "Vlaams Gewest : Face mask Yes", "Waals Gewest : Face mask Yes"))
 
@@ -697,3 +706,4 @@ ggplot(df, aes(x = RelativeContacts, y = reorder(Covariate, RelativeContacts))) 
   labs(x = "Relative Number of having non-household contacts", y = "Covariates") +
   theme(axis.text.y = element_text(size = 10)) +
   scale_y_discrete(limits = covariate_order) # Ensure correct order
+
