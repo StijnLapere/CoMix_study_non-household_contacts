@@ -832,3 +832,52 @@ library(DHARMa)
 simulationoutput <- simulateResiduals(fittedModel = glmm_elderlytotalnoeducation)
 plot(simulationoutput)
 testDispersion(simulationoutput)
+
+df <- data.frame(
+  Covariate = c("Brussels Hoofdstede", "Vlaams Gewest", "Waals Gewest", "Holiday No", "Holiday Yes", 
+                "Vacc No", "Vacc Yes", "Elevated risk No", "Elevated risk Yes", "Face mask No", "Face mask Yes",
+                "Female", "Male", "hh size 1", "hh size 2", "hh size 3+", 
+                "1 wave", "2 waves", "3 waves", "4 waves", "5 waves", "6 waves", "7 waves", "8+ waves",
+                "Elevated risk No : Face mask No", "Elevated risk Yes : Face mask Yes", "Vacc No : Face mask No", "Vacc Yes : Face mask Yes",
+                "Vacc No : hh size 1", "Vacc Yes : hh size 2", "Vacc Yes : hh size 3+"),
+  Estimate = c(0, -0.022986, -0.452020, 0, 0.114661,
+               0, 0.444576, 0, -0.144448, 0, 1.725492,
+               0, -0.392107, 0, -0.411383, -1.101318,
+               0, 0.492847, 0.127269, 0.124492, -0.237321, -0.123039, 0.006912, -0.193477,
+               0, 0.345069, 0, -0.415289,
+               0, 0.394946, 0.797104),
+  SE = c(0, 0.313367, 0.324909, 0, 0.063356,
+         0, 0.196907, 0, 0.136176, 0, 0.159138,
+         0, 0.172636, 0, 0.219339, 0.467023,
+         0, 0.163078, 0.167397, 0.169102, 0.170783, 0.173370, 0.178130, 0.137896,
+         0, 0.134543, 0, 0.161142,
+         0, 0.177694, 0.374711)
+)
+
+# Compute the relative number of contacts and confidence intervals
+df <- df %>%
+  mutate(
+    RelativeContacts = exp(Estimate), 
+    LowerCI = exp(Estimate - 1.96 * SE), 
+    UpperCI = exp(Estimate + 1.96 * SE)
+  )
+
+covariate_order <- rev(c("Brussels Hoofdstede", "Vlaams Gewest", "Waals Gewest", "Holiday No", "Holiday Yes", 
+                         "Vacc No", "Vacc Yes", "Elevated risk No", "Elevated risk Yes", "Face mask No", "Face mask Yes",
+                         "Female", "Male", "hh size 1", "hh size 2", "hh size 3+", 
+                         "1 wave", "2 waves", "3 waves", "4 waves", "5 waves", "6 waves", "7 waves", "8+ waves",
+                         "Elevated risk No : Face mask No", "Elevated risk Yes : Face mask Yes", "Vacc No : Face mask No", "Vacc Yes : Face mask Yes",
+                         "Vacc No : hh size 1", "Vacc Yes : hh size 2", "Vacc Yes : hh size 3+"))
+
+df$Covariate <- factor(df$Covariate, levels = covariate_order)
+
+library(ggplot2)
+# Plot using ggplot2
+ggplot(df, aes(x = RelativeContacts, y = reorder(Covariate, RelativeContacts))) +
+  geom_point(size = 2, color = "red") + 
+  geom_errorbarh(aes(xmin = LowerCI, xmax = UpperCI), height = 0.5, linewidth = 0.8, color = "black") + 
+  geom_vline(xintercept = 1, linetype = "dashed", color = "blue") +
+  theme_minimal() +
+  labs(x = "Relative Odds of having non-household contacts", y = "Covariates") +
+  theme(axis.text.y = element_text(size = 10)) +
+  scale_y_discrete(limits = covariate_order) # Ensure correct order
