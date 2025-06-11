@@ -10,14 +10,6 @@ sday <- fread("C:/Users/stijn/Downloads/CoMix_BE_sday.csv",fill=TRUE)
 library(tidyr)
 library(dplyr)
 
-### This is incorrect, because only the waves with at least 1 contact are taken into account ###
-counts_per_wave <- contact_extra %>%
-  group_by(part_uid, wave) %>%
-  summarise(count = n(), .groups = "drop") %>%  
-  pivot_wider(names_from = wave, values_from = count, values_fill = list(count = 0))
-
-
-### This is the correct version
 counts_per_wave <- participant_extra %>%
   dplyr::select(part_uid, wave, n_cnt_all)
 
@@ -45,7 +37,6 @@ contactextrawaves <- contactextrawaves %>%
   arrange(part_uid,wave) %>%
   group_by(part_uid) %>%
   mutate(num_waves_participated = n_distinct(wave))
-
 
 contactextrawaves_short <- contactextrawaves %>%
   mutate(part_uid_wave = as.integer(paste0(substr(part_uid, 4, nchar(part_uid)), sprintf("%02d", wave))))
@@ -102,7 +93,7 @@ contactextrawaves_merged <- contactextrawaves_merged %>%
     part_age >= 0 & part_age <= 17 ~ "Children",
     part_age >= 18 & part_age <= 64 ~ "Adult",
     part_age >= 65 ~ "Elderly",
-    TRUE ~ NA_character_  # Handle missing or unexpected values
+    TRUE ~ NA_character_  
   ))
 
 contactextrawaves_NAage <- contactextrawaves_merged %>%
@@ -124,7 +115,7 @@ contactextrawaves_merged <- contactextrawaves_merged %>%
     adult_cat == "Adult" ~ 1,
     adult_cat == "Elderly" ~ 0,
     adult_cat == "Children" ~ 0,
-    TRUE ~ NA_real_  # Handle missing or unexpected values
+    TRUE ~ NA_real_  
   ))
 
 contactextrawaves_merged <- contactextrawaves_merged %>%
@@ -132,7 +123,7 @@ contactextrawaves_merged <- contactextrawaves_merged %>%
     adult_cat == "Adult" ~ 0,
     adult_cat == "Elderly" ~ 1,
     adult_cat == "Children" ~ 0,
-    TRUE ~ NA_real_  # Handle missing or unexpected values
+    TRUE ~ NA_real_  
   ))
 
 contactextrawaves_merged <- contactextrawaves_merged %>%
@@ -144,7 +135,7 @@ contactextrawaves_merged <- contactextrawaves_merged %>%
     survey_weekday == "Friday" ~ "Weekday",
     survey_weekday == "Saturday" ~ "Weekend",
     survey_weekday == "Sunday" ~ "Weekend",
-    TRUE ~ NA_character_  # Handle missing or unexpected values
+    TRUE ~ NA_character_ 
   ))
 
 contactextrawaves_merged <- contactextrawaves_merged %>%
@@ -158,7 +149,7 @@ contactextrawaves_merged <- contactextrawaves_merged %>%
     part_employstatus == "student/pupil" ~ "Student",
     part_employstatus == "unemployed and not looking for a job" ~ "Not in labor force",
     part_employstatus == "unemployed but looking for a job" ~ "Not in labor force",
-    TRUE ~ NA_character_  # Handle missing or unexpected values
+    TRUE ~ NA_character_  
   ))
 
 contactextrawaves_merged <- contactextrawaves_merged %>%
@@ -173,7 +164,7 @@ contactextrawaves_merged <- contactextrawaves_merged %>%
     part_hh_education_main_earner == "University education: bachelor's degree post-graduate master's degree" ~ "High",
     part_hh_education_main_earner == "Complementary master" ~ "High",
     part_hh_education_main_earner == "Doctorate" ~ "High",
-    TRUE ~ NA_character_  # Handle missing or unexpected values
+    TRUE ~ NA_character_
   ))
 
 contactextrawaves_merged <- contactextrawaves_merged %>%
@@ -182,7 +173,7 @@ contactextrawaves_merged <- contactextrawaves_merged %>%
                               "R\xe9gion Wallonne / Waals Gewest" = "Waals Gewest",
                               "R\xe9gion de Bruxelles-Capitale / Brussels Hoofdstede" = "Brussels Hoofdstede"))
 
-table(contactextrawaves_merged$hh_size) #Make factor variable with hhsize in {1,2,3,4+}
+table(contactextrawaves_merged$hh_size) # Make factor variable with hhsize in {1,2,3,4+}
 contactextrawaves_merged <- contactextrawaves_merged %>%
   mutate(hhsize_cat = as.factor(ifelse(hh_size == 1, "1",
                                        ifelse(hh_size == 2, "2",
@@ -209,8 +200,6 @@ contactextrawaves_merged2 <- contactextrawaves_merged2 %>%
                                       ifelse(row_number() == 2, "2",">=3")))) %>% 
   arrange(part_uid) %>% group_by(part_uid) %>%  as.data.frame()
 
-
-
 contact_extra <- contact_extra %>%
   mutate(cnt_adult_cat = case_when(
     cnt_age_group == "0-11" ~ "Children",
@@ -229,7 +218,7 @@ contact_extra <- contact_extra %>%
     cnt_age_group == "50-69" ~ "Adult",
     cnt_age_group == "60-69" ~ "Adult",
     cnt_age_group == "70-120" ~ "Elderly",
-    TRUE ~ NA_character_  # Handle missing or unexpected values
+    TRUE ~ NA_character_ 
   ))
 
 contact_extra_NAagegroup <- contact_extra %>%
@@ -258,7 +247,7 @@ contact_extra <- contact_extra %>%
     cnt_age_group == "70-120" ~ "Elderly",
     cnt_age == "15-19" ~ "Children",
     cnt_age == "65+" ~ "Elderly",
-    TRUE ~ NA_character_  # Handle missing or unexpected values
+    TRUE ~ NA_character_  
   ))
   
 table(contact_extra$cnt_adult_cat,useNA = "ifany")
@@ -277,6 +266,7 @@ colnames(contacts_summary) <- c("part_uid","wave","cnt_adult","cnt_NA","cnt_elde
 contactextrawaves_merged2 <- contactextrawaves_merged2 %>%
   left_join(contacts_summary, by = c("part_uid","wave"))
 
+# If 0 non-household contacts are made, also no adults, children or elderly outside the household will be contacted
 for (i in 1:nrow(contactextrawaves_merged2)){
   if (contactextrawaves_merged2$num_nonhouseh_cont[i] == 0){
     contactextrawaves_merged2$cnt_adult[i] = 0
@@ -383,9 +373,7 @@ finaldataset_NAgender <- finaldataset %>%
 # For every participant, the gender at the first wave of participation is used
 for (id in unique_ids) {
   rows <- which(finaldataset$part_uid == id)
-  # Get the first non-NA gender for this participant
   first_wave_gender <- finaldataset$part_gender[rows[!is.na(finaldataset$part_gender[rows])]][1]
-  # Set the gender for all rows for this participant to this gender
   finaldataset$part_gender[rows] <- first_wave_gender
 }
 
@@ -399,7 +387,6 @@ finaldataset_NAelevrisk <- finaldataset %>%
 
 # It is assumed that children have no elevated risk
 finaldataset$part_elevated_risk[finaldataset$adult_cat == "Children" & is.na(finaldataset$part_elevated_risk)] <- "no"
-
 
 finaldataset <- finaldataset %>% 
   group_by(part_uid) %>% 
@@ -460,7 +447,6 @@ finaldataset_noage_Elderly <- finaldataset_noage_Elderly %>%
 finaldataset_noage_Elderly$hhsize_elderly <- relevel(finaldataset_noage_Elderly$hhsize_elderly, ref = "1")
 
 
-
 ##########################################################
 ############ Dataset for logistic regression #############
 ##########################################################
@@ -470,7 +456,7 @@ logisticdataset <- contact_extra %>%
   mutate(cnt_nonhousehold = case_when(
     cnt_household == "0" ~ "1",
     cnt_household == "1" ~ "0",
-    TRUE ~ NA_character_  # Handle missing or unexpected values
+    TRUE ~ NA_character_  
   ))
 
 logisticdataset <- logisticdataset %>%
