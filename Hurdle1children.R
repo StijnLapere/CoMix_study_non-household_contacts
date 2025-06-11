@@ -190,3 +190,48 @@ library(DHARMa)
 simulationoutput <- simulateResiduals(fittedModel = glmm_childrentotalnosocialgroup)
 plot(simulationoutput)
 testDispersion(simulationoutput)
+
+df <- data.frame(
+  Covariate = c("Brussels Hoofdstede", "Vlaams Gewest", "Waals Gewest", "Holiday No", "Holiday Yes", 
+                "Weekday", "Weekend", "Face mask No", "Face mask Yes",
+                "hh size 2", "hh size 3", "hh size 4+", 
+                "1 wave", "2 waves", "3 waves", "4 waves", "5 waves", "6 waves", "7 waves", "8+ waves",
+                "Holiday No : Weekday", "Holiday Yes : Weekend"),
+  Estimate = c(0, 1.41299, 0.15099, 0, -0.37373,
+               0, -0.17913, 0, 0.75331,
+               0, -0.48692, -0.58241,
+               0, -0.02253, -0.36051, -0.29258, -0.55091, -0.73604, -0.72873, -1.03180,
+               0, 0.29808),
+  SE = c(0, 0.22347, 0.22712, 0, 0.07377,
+         0, 0.09164, 0, 0.07403,
+         0, 0.22348, 0.21387,
+         0, 0.12434, 0.13314, 0.13949, 0.14679, 0.15240, 0.15755, 0.10426,
+         0, 0.15172)
+)
+
+# Compute the relative number of contacts and confidence intervals
+df <- df %>%
+  mutate(
+    RelativeContacts = exp(Estimate), 
+    LowerCI = exp(Estimate - 1.96 * SE), 
+    UpperCI = exp(Estimate + 1.96 * SE)
+  )
+
+covariate_order <- rev(c("Brussels Hoofdstede", "Vlaams Gewest", "Waals Gewest", "Holiday No", "Holiday Yes", 
+                         "Weekday", "Weekend", "Face mask No", "Face mask Yes",
+                         "hh size 2", "hh size 3", "hh size 4+", 
+                         "1 wave", "2 waves", "3 waves", "4 waves", "5 waves", "6 waves", "7 waves", "8+ waves",
+                         "Holiday No : Weekday", "Holiday Yes : Weekend"))
+
+df$Covariate <- factor(df$Covariate, levels = covariate_order)
+
+library(ggplot2)
+# Plot using ggplot2
+ggplot(df, aes(x = RelativeContacts, y = reorder(Covariate, RelativeContacts))) +
+  geom_point(size = 2, color = "red") + 
+  geom_errorbarh(aes(xmin = LowerCI, xmax = UpperCI), height = 0.5, linewidth = 0.8, color = "black") + 
+  geom_vline(xintercept = 1, linetype = "dashed", color = "blue") +
+  theme_minimal() +
+  labs(x = "Relative Odds of having non-household contacts", y = "Covariates") +
+  theme(axis.text.y = element_text(size = 10)) +
+  scale_y_discrete(limits = covariate_order) # Ensure correct order
