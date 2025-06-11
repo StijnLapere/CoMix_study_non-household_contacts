@@ -28,6 +28,7 @@ pchisq(23092.25-22987.72, df=length(fixef(glmm_adultstotalwavecount))-length(fix
 dispersion_glmer(glmm_adultstotalwavecount)
 #No (0.92), so continue with binomial distribution
 
+## Include interaction effect
 glmm_adulttotal2.1 <- glmer(
   any_nonhh_contact ~ area_3_name + holiday + wd + employstatus +
     educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
@@ -195,6 +196,7 @@ glmm_adulttotal2.15 <- glmer(
 
 pchisq(22987.72-22971.13, df=length(fixef(glmm_adulttotal2.9))-length(fixef(glmm_adultstotalwavecount)), lower.tail=FALSE)
 
+## Can we include another interaction effect?
 glmm_adulttotal3.1 <- glmer(
   any_nonhh_contact ~ area_3_name + holiday + wd + employstatus +
     educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
@@ -340,6 +342,7 @@ glmm_adulttotal3.13 <- glmer(
 
 pchisq(22971.13-22961.06, df=length(fixef(glmm_adulttotal3.8))-length(fixef(glmm_adulttotal2.9)), lower.tail=FALSE)
 
+## Can we include another interaction effect?
 glmm_adulttotal4.1 <- glmer(
   any_nonhh_contact ~ area_3_name + holiday + wd + employstatus +
     educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
@@ -474,6 +477,7 @@ glmm_adulttotal4.12 <- glmer(
 
 pchisq(22961.06-22957.07, df=length(fixef(glmm_adulttotal4.4))-length(fixef(glmm_adulttotal3.8)), lower.tail=FALSE)
 
+## Can we include another interaction effect?
 glmm_adulttotal5.1 <- glmer(
   any_nonhh_contact ~ area_3_name + holiday + wd + employstatus +
     educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
@@ -597,6 +601,7 @@ glmm_adulttotal5.11 <- glmer(
 
 pchisq(22957.07-22953.18, df=length(fixef(glmm_adulttotal5.4))-length(fixef(glmm_adulttotal4.4)), lower.tail=FALSE)
 
+## Can we include another interaction effect?
 glmm_adulttotal6.1 <- glmer(
   any_nonhh_contact ~ area_3_name + holiday + wd + employstatus +
     educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
@@ -812,6 +817,8 @@ glmm_adulttotalnowavecount <- glmer(
 
 pchisq(22957.83-22953.18, df=length(fixef(glmm_adulttotal5.4))-length(fixef(glmm_adulttotalnosocialgroup)), lower.tail=FALSE)
 
+### Remove main effect of social group
+## Can we remove another main effect?
 glmm_adulttotalnoarea <- glmer(
   any_nonhh_contact ~ holiday + wd + employstatus +
     educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
@@ -902,6 +909,8 @@ glmm_adulttotalnowavecount <- glmer(
 
 pchisq(22962.00-22957.83, df=length(fixef(glmm_adulttotalnosocialgroup))-length(fixef(glmm_adulttotalnoemploystatus)), lower.tail=FALSE)
 
+### Remove main effect of employmentstatus
+## Can we remove another main effect?
 glmm_adulttotalnoarea <- glmer(
   any_nonhh_contact ~ holiday + wd +
     educationmainearner + hhsize_cat + part_vacc + part_elevated_risk + 
