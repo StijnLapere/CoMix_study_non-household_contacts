@@ -1626,15 +1626,21 @@ finalmodeladults <- modeladultssigmanohhsize
 # mean =~ 0, variance =~ 1, skewness =~ 0, kurtosis =~ 3 
 # --> residuals are approximately normally distributed as they should be for an adequate model
 plot(finalmodeladults)
-# mean = -0.0205, variance = 0.8921, skewness = -0.0831, kurtosis = 3.1862
 
 # 2) rqres.plot has to be used in addition to the function plot due to discrete distribution family
-rqres.plot(finalmodelelderly)
-rqres.plot(finalmodelelderly,2,all=FALSE)
-### What is this??
+rqres.plot(finalmodeladults,6,type="QQ")
+saveres <- rqres.plot(finalmodeladults,40,type="QQ",plot.type="all",all=FALSE)
 
+install.packages("matrixStats")
+library(matrixStats)
 
+row_medians <- rowMedians(saveres)
 
+install.packages("e1071")
+library(e1071)
+
+c(mean(row_medians),var(row_medians),skewness(row_medians),kurtosis(row_medians)+3)
+# mean = -0.0193, variance = 0.8888, skewness = -0.0842, kurtosis = 3.1905
 
 df <- data.frame(
   Covariate = c("Social Group 1&2","Social Group 3&4","Social Group 5&6","Social Group 7&8",
