@@ -1,4 +1,4 @@
-# Masterthesis
+# Master's thesis: Unravelling non-household contact patterns during the COVID-19 pandemic in Belgium
 
 This master's thesis will analyse the non-household contacts from wave 12-43 in the Belgian CoMix data.
 
