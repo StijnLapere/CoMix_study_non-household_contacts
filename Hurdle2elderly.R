@@ -33,7 +33,6 @@ hurdle2_elderly1wavecountshort <- glmer(
   control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
 #AIC = 24435.98, -2Loglik = 24395.98, 19 param
 
-
 ## Is there overdispersion?
 library("blmeco") 
 dispersion_glmer(hurdle2_elderly1wavecount)
@@ -69,6 +68,7 @@ hurdle2_elderlynb1wavecountshort <- glmmTMB(
   family = truncated_nbinom2)
 #AIC = 15400.423, -2Loglik = 15358.423, 19 param
 
+## Include interaction effect
 hurdle2_elderly2.1 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
@@ -179,6 +179,7 @@ hurdle2_elderly2.12 <- glmmTMB(
 
 pchisq(15346.44-15338.341, df=length(fixef(hurdle2_elderly2.9)$cond)-length(fixef(hurdle2_elderlynb1wavecount)$cond), lower.tail=FALSE)
 
+## Can we include another interaction effect?
 hurdle2_elderly3.1 <- glmmTMB(
   num_contacts ~ area_3_name + holiday + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
@@ -374,6 +375,8 @@ hurdle2_elderlynowavecount <- glmmTMB(
 
 pchisq(15339.168-15338.341, df=length(fixef(hurdle2_elderly2.9)$cond)-length(fixef(hurdle2_elderlynosocialgroup)$cond), lower.tail=FALSE)
 
+### Remove main effect of social group
+## Can we remove another main effect?
 hurdle2_elderlynoholiday <- glmmTMB(
   num_contacts ~ area_3_name + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
@@ -458,6 +461,8 @@ hurdle2_elderlynowavecount <- glmmTMB(
 pchisq(15339.211-15339.168, df=length(fixef(hurdle2_elderlynosocialgroup)$cond)-length(fixef(hurdle2_elderlynoeducation)$cond), lower.tail=FALSE)
 pchisq(15339.194-15339.168, df=length(fixef(hurdle2_elderlynosocialgroup)$cond)-length(fixef(hurdle2_elderlynohhsize)$cond), lower.tail=FALSE)
 
+### Remove main effect of hhsize
+## Can we remove another main effect?
 hurdle2_elderlynoholiday <- glmmTMB(
   num_contacts ~ area_3_name + wd + educationmainearner + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
@@ -532,6 +537,8 @@ hurdle2_elderlynowavecount <- glmmTMB(
 
 pchisq(15339.236-15339.194, df=length(fixef(hurdle2_elderlynohhsize)$cond)-length(fixef(hurdle2_elderlynoeducation)$cond), lower.tail=FALSE)
 
+### Remove main effect of hhsize
+## Can we remove another main effect?
 hurdle2_elderlynoholiday <- glmmTMB(
   num_contacts ~ area_3_name + wd + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none + part_gender +
@@ -597,6 +604,8 @@ hurdle2_elderlynowavecount <- glmmTMB(
 
 pchisq(15341.551-15339.236, df=length(fixef(hurdle2_elderlynoeducation)$cond)-length(fixef(hurdle2_elderlynogender)$cond), lower.tail=FALSE)
 
+### Remove main effect of gender
+## Can we remove another main effect?
 hurdle2_elderlynoholiday <- glmmTMB(
   num_contacts ~ area_3_name + wd + 
     part_vacc + part_elevated_risk + part_face_mask + part_symp_none +
