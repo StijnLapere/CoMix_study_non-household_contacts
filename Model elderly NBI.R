@@ -552,7 +552,7 @@ modelelderly2.9.4 <- gamlss(num_nonhouseh_cont ~ part_vacc+
 
 ### NO SIGNIFICANT IMPROVEMENT 
 
-### Built model for sigma
+### Build model for sigma
 modelelderlysigma1 <- gamlss(num_nonhouseh_cont ~ part_vacc+
                                part_face_mask+part_symp_none+area_3_name+holiday+wd+
                                hhsize_elderly+wavecount+part_gender+part_face_mask:area_3_name+
