@@ -22,6 +22,7 @@ glmm_childrentotal2 <- glmer(
 dispersion_glmer(glmm_childrentotal2)
 #No (0.97), so continue with binomial distribution
 
+## Include interaction effect
 glmm_childrentotal2.1 <- glmer(
   any_nonhh_contact ~ area_3_name + holiday + wd + hhsize_cat +
     part_face_mask + part_social_group_be + wavecount + part_face_mask:area_3_name +
@@ -63,6 +64,7 @@ pchisq(8366.669-8361.283, df=length(fixef(glmm_childrentotal2.2))-length(fixef(g
 pchisq(8366.669-8358.659, df=length(fixef(glmm_childrentotal2.3))-length(fixef(glmm_childrentotal2)), lower.tail=FALSE)
 pchisq(8366.669-8362.937, df=length(fixef(glmm_childrentotal2.4))-length(fixef(glmm_childrentotal2)), lower.tail=FALSE)
 
+## Can we include another interaction effect?
 glmm_childrentotal3.1 <- glmer(
   any_nonhh_contact ~ area_3_name + holiday + wd + hhsize_cat +
     part_face_mask + part_social_group_be + wavecount + holiday:wd + part_face_mask:area_3_name +
@@ -95,9 +97,7 @@ pchisq(8362.937-8358.301, df=length(fixef(glmm_childrentotal3.2))-length(fixef(g
 pchisq(8362.937-8354.920, df=length(fixef(glmm_childrentotal3.3))-length(fixef(glmm_childrentotal2.4)), lower.tail=FALSE)
 
 ## NO SIGNIFICANT IMPROVEMENTS ANYMORE
-
 # Can we remove main effects?
-
 glmm_childrentotalnoarea <- glmer(
   any_nonhh_contact ~ holiday + wd + hhsize_cat +
     part_face_mask + part_social_group_be + wavecount + holiday:wd +
@@ -145,6 +145,8 @@ glmm_childrentotalnowavecount <- glmer(
 
 pchisq(8365.404-8362.937, df=length(fixef(glmm_childrentotal2.4))-length(fixef(glmm_childrentotalnosocialgroup)), lower.tail=FALSE)
 
+### Remove main effect of social group
+## Can we remove another main effect?
 glmm_childrentotalnoarea <- glmer(
   any_nonhh_contact ~ holiday + wd + hhsize_cat +
     part_face_mask + wavecount + holiday:wd +
