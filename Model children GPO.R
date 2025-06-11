@@ -20,6 +20,7 @@ modelchildren1cs <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_face_m
                            control = gamlss.control(n.cyc = 1000)) 
 #54 iterations, AIC = 27223.9
 
+## Include interaction effect
 modelchildren2.1 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_face_mask+
                              area_3_name+holiday+wd+hhsize_cat+wavecount+part_face_mask:area_3_name+
                              pvc(day_number)+
@@ -62,6 +63,7 @@ modelchildren2.4 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_face_m
 
 pchisq(27096.7-27091.2, df=length(coef(modelchildren2.2))-length(coef(modelchildren1pvc)), lower.tail=FALSE)
 
+## Can we include another interaction effect?
 modelchildren3.1 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_face_mask+
                              area_3_name+holiday+wd+hhsize_cat+wavecount+
                              holiday:area_3_name+part_face_mask:area_3_name+
@@ -97,7 +99,7 @@ modelchildren3.3 <- gamlss(num_nonhouseh_cont ~ part_social_group_be+part_face_m
 
 ## NO IMPROVEMENT ANYMORE
 
-## CAN WE REMOVE A MAIN EFFECT?
+## Can we remove a main effect?
 modelchildrennosocialgroup <- gamlss(num_nonhouseh_cont ~ part_face_mask+
                              area_3_name+holiday+wd+hhsize_cat+wavecount+holiday:area_3_name+
                              pvc(day_number)+
@@ -148,7 +150,8 @@ modelchildrennowavecount <- gamlss(num_nonhouseh_cont ~ part_social_group_be+par
                                      control = gamlss.control(n.cyc = 100)) 
 #80 iterations, AIC = 27178.3
 
-## CAN WE REMOVE ANOTHER MAIN EFFECT?
+### Remove main effect of social group
+## Can we remove another main effect?
 modelchildrennofacemask <- gamlss(num_nonhouseh_cont ~ area_3_name+holiday+wd+hhsize_cat+wavecount+holiday:area_3_name+
                                        pvc(day_number)+
                                        re(random = ~1|part_uid),
@@ -189,7 +192,7 @@ modelchildrennowavecount <- gamlss(num_nonhouseh_cont ~ part_face_mask+
 #62 iterations, AIC = 27173.4
 
 ## NO LARGE IMPROVEMENTS ANYMORE
-
+## Build model for sigma
 modelchildrensigma1 <- gamlss(num_nonhouseh_cont ~ part_face_mask+
                                        area_3_name+holiday+wd+hhsize_cat+wavecount+holiday:area_3_name+
                                        pvc(day_number)+
