@@ -1932,7 +1932,7 @@ ggplot(cluster_means_long[cluster_means_long$cluster == 1, ], aes(x = locatie, y
     axis.text.x = element_text(size = 16, angle = -90, vjust = 0.5, hjust = 1),  
     axis.text.y = element_text(size = 16),                                       
     axis.title.x = element_text(size = 18),                                      
-    axis.title.y = element_text(size = 18)                                       
+    axis.title.y = element_text(size = 18))                                       
 
 
 ######## Clustering per income category for only adults and elderly ########
@@ -3690,7 +3690,7 @@ dist_matrix <- dist(clust_scaled)
 hc <- hclust(dist_matrix, method = "ward.D2")
 
 # Plot dendrogram
-plot(hc, main = "Dendrogram contactprofiles, xlab = "", sub = "")
+plot(hc, main = "Dendrogram contactprofiles", xlab = "", sub = "")
 
 # Elbow plot
 fviz_nbclust(clusteringdataset, FUN = hcut, method = "wss")
@@ -3755,3 +3755,4 @@ ggplot(cluster_means_long[cluster_means_long$cluster == 1, ], aes(x = locatie, y
     axis.title.x = element_text(size = 18),                                      
     axis.title.y = element_text(size = 18)                                       
   )
+
